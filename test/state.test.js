@@ -66,4 +66,12 @@ describe('central configuration', () => {
       for (const value of [animal.stampX, animal.stampY, animal.stampWidth, animal.stampHeight]) expect(value).toBeGreaterThan(0);
     }
   });
+
+  it('contains complete Japanese and Traditional Chinese interface translations', () => {
+    const englishKeys = Object.keys(eventConfig.text.en).sort();
+    expect(Object.keys(eventConfig.text.ja).sort()).toEqual(englishKeys);
+    expect(Object.keys(eventConfig.text['zh-TW']).sort()).toEqual(englishKeys);
+    expect(eventConfig.text.ja.start).not.toBe(eventConfig.text.en.start);
+    expect(eventConfig.text['zh-TW'].start).not.toBe(eventConfig.text.en.start);
+  });
 });

@@ -1,4 +1,5 @@
 import QRCode from 'qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 import './styles.css';
 import { eventConfig, textFor, animalName } from './config/eventConfig.js';
 import { initialState, loadState, saveState, sanitizeNickname, sanitizeMessage, validateStamp, addStamp, exportState, importState } from './state.js';
@@ -12,6 +13,9 @@ let view = 'start';
 let activeAnimal = null;
 let drawingPad = null;
 let staffUnlocked = false;
+let staffDestination = 'staff';
+let qrScanner = null;
+let scanLocked = false;
 let storageWorks = testStorage();
 
 const params = new URLSearchParams(location.search);
@@ -20,7 +24,7 @@ const requestedToken = params.get('token');
 const hasStampParams = requestedAnimalId || requestedToken;
 let pendingAnimal = hasStampParams ? validateStamp(requestedAnimalId, requestedToken) : null;
 let invalidStampRequest = Boolean(hasStampParams && !pendingAnimal);
-if (params.get('view') === 'qr') view = 'qr';
+if (params.get('view') === 'qr') { staffDestination = 'qr'; view = 'staff-login'; }
 else if (params.get(eventConfig.staff.queryKey) === '1') view = 'staff-login';
 else if (state.nickname && pendingAnimal) claimPendingStamp();
 else if (state.nickname && invalidStampRequest) view = 'invalid';
@@ -35,6 +39,7 @@ function h(value) {
 }
 
 function t(key) { return textFor(state.language, key); }
+function eventSubtitle() { return eventConfig.event.subtitle[state.language] || eventConfig.event.subtitle.en; }
 function persist() { if (!saveState(state)) { storageWorks = false; toast(t('storageWarning'), 5000); } }
 function toast(message, duration = 2600) { toastElement.textContent = message; toastElement.classList.add('show'); setTimeout(() => toastElement.classList.remove('show'), duration); }
 function languageOptions() {
@@ -46,7 +51,7 @@ function topbar(title = eventConfig.event.name) { return `<header class="topbar"
 function shell(content, wide = false) { app.className = `shell${wide ? ' wide' : ''}`; app.innerHTML = content; bindGlobal(); monitorImages(); }
 
 function bindGlobal() {
-  document.querySelector('#language')?.addEventListener('change', (event) => { state.language = event.target.value; persist(); render(); });
+  document.querySelector('#language')?.addEventListener('change', (event) => { state.language = event.target.value; persist(); stopQrScanner().finally(() => render()); });
   document.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => go(button.dataset.view)));
 }
 
@@ -59,6 +64,7 @@ function monitorImages() {
 }
 
 function go(next, options = {}) {
+  stopQrScanner();
   drawingPad?.destroy(); drawingPad = null; view = next;
   if (options.animal) activeAnimal = options.animal;
   window.scrollTo({ top: 0, behavior: 'instant' }); render();
@@ -81,7 +87,7 @@ function renderStart() {
   shell(`${topbar()}<section class="panel">
     <img class="hero" src="${h(assetUrl(eventConfig.assets.hero))}" data-file="${h(eventConfig.assets.hero)}" alt="${h(t('heroAlt'))}">
     <img src="${h(assetUrl(eventConfig.assets.logo))}" data-file="${h(eventConfig.assets.logo)}" alt="${h(t('logoAlt'))}" style="width:min(70%,320px);display:block;margin:1rem auto">
-    <h1>${h(eventConfig.event.name)}</h1><p class="subtitle">${h(eventConfig.event.subtitle)}</p><p>${h(t('intro'))}</p>
+    <h1>${h(eventConfig.event.name)}</h1><p class="subtitle">${h(eventSubtitle())}</p><p>${h(t('intro'))}</p>
     ${invalidStampRequest ? `<p class="error-box" role="alert">${h(t('invalidStamp'))}</p>` : ''}
     ${!storageWorks ? `<p class="error-box" role="alert">${h(t('storageWarning'))}</p>` : ''}
     <form id="start-form"><label for="nickname">${h(t('nickname'))}</label><input id="nickname" name="nickname" type="text" maxlength="20" required autocomplete="nickname" value="${h(state.nickname)}" aria-describedby="nickname-hint"><small id="nickname-hint">${h(t('nicknameHint'))}</small>
@@ -120,7 +126,7 @@ function renderCard() {
     <div class="progress"><span>${h(t('progress'))}</span><strong>${state.stamps.length} / ${eventConfig.animals.length}</strong></div>
     <div class="actions">${complete ? `<button data-view="complete">${h(t('preview'))}</button>` : ''}<button class="secondary" id="edit-nickname">${h(t('editNickname'))}</button><button class="secondary" id="show-help">${h(t('instructions'))}</button></div>
   </section><section class="panel"><h2>${h(t('animals'))}</h2><div class="animal-grid">${eventConfig.animals.map((animal) => `<button class="animal-tile ${state.stamps.includes(animal.id) ? 'owned' : ''}" data-animal="${animal.id}"><span>${state.stamps.includes(animal.id) ? '✓' : '○'}</span> ${h(animalName(animal, state.language))}</button>`).join('')}</div></section>
-  <section class="panel"><div class="actions"><button class="secondary" data-view="start">${h(t('home'))}</button><button class="secondary" data-view="staff-login">${h(t('staff'))}</button><button class="secondary" data-view="qr">${h(t('qrAdmin'))}</button><button class="danger" id="reset">${h(t('reset'))}</button></div><p class="privacy">${h(t('privacy'))}</p></section>`);
+  <section class="panel"><div class="actions"><button data-view="scan">${h(t('scanQr'))}</button><button class="secondary" data-view="start">${h(t('home'))}</button><button class="secondary" data-view="staff-login">${h(t('staff'))}</button><button class="danger" id="reset">${h(t('reset'))}</button></div><p class="privacy">${h(t('privacy'))}</p></section>`);
   document.querySelectorAll('[data-animal]').forEach((button) => button.addEventListener('click', () => go('animal', { animal: eventConfig.animals.find((a) => a.id === button.dataset.animal) })));
   document.querySelector('#edit-nickname').addEventListener('click', editNickname);
   document.querySelector('#show-help').addEventListener('click', () => modal(`<h2>${h(t('instructions'))}</h2><p>${h(t('useInstructions'))}</p><p>${h(t('privacy'))}</p>`));
@@ -146,6 +152,56 @@ function renderAnimal(result = false, duplicate = false) {
 
 function renderInvalidStamp() {
   shell(`${topbar()}<section class="panel"><p class="error-box" role="alert">${h(t('invalidStamp'))}</p><button style="width:100%" data-view="card">${h(t('backToCard'))}</button></section>`);
+}
+
+async function renderScanner() {
+  shell(`${topbar(t('scanTitle'))}<section class="panel"><p>${h(t('scanHelp'))}</p><div id="qr-reader" class="qr-reader" aria-label="${h(t('scanTitle'))}"></div><p id="scan-status" class="hint" role="status"></p><div class="actions"><button class="secondary" data-view="card">${h(t('stopScan'))}</button></div></section>`);
+  scanLocked = false;
+  qrScanner = new Html5Qrcode('qr-reader');
+  try {
+    await qrScanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: (width, height) => { const size = Math.floor(Math.min(width, height) * 0.72); return { width: size, height: size }; } },
+      handleScannedCode,
+      () => {},
+    );
+  } catch {
+    qrScanner = null;
+    const status = document.querySelector('#scan-status');
+    if (status) { status.className = 'error-box'; status.textContent = t('cameraError'); }
+  }
+}
+
+async function handleScannedCode(decodedText) {
+  if (scanLocked) return;
+  let animal = null;
+  try {
+    const scannedUrl = new URL(decodedText);
+    animal = validateStamp(scannedUrl.searchParams.get('stamp'), scannedUrl.searchParams.get('token'));
+  } catch { /* A non-URL QR code is not valid for this activity. */ }
+  if (!animal) {
+    const status = document.querySelector('#scan-status');
+    if (status) { status.className = 'error-box'; status.textContent = t('scanInvalid'); }
+    return;
+  }
+  scanLocked = true;
+  const alreadyOwned = state.stamps.includes(animal.id);
+  activeAnimal = animal;
+  if (!alreadyOwned) {
+    const result = addStamp(state, animal.id); state = result.state; persist();
+    if (result.completedNow) sessionStorage.setItem('passport-completed-now', '1');
+    if (eventConfig.sound.enabled) new Audio(assetUrl(eventConfig.sound.path)).play().catch(() => {});
+  }
+  await stopQrScanner();
+  go(alreadyOwned ? 'duplicate' : 'stamp-result', { animal });
+}
+
+async function stopQrScanner() {
+  const scanner = qrScanner;
+  qrScanner = null;
+  if (!scanner) return;
+  try { await scanner.stop(); } catch { /* Camera may not have started. */ }
+  try { scanner.clear(); } catch { /* The reader element may already be gone. */ }
 }
 
 function renderComplete() {
@@ -189,11 +245,11 @@ async function shareCompleted() {
 function renderStaffLogin() {
   if (staffUnlocked) return renderStaff();
   shell(`${topbar(t('staff'))}<section class="panel"><p class="privacy">${h(t('staffSecurity'))}</p><form id="pin-form"><label for="pin">${h(t('staffPin'))}</label><input id="pin" type="password" inputmode="numeric" autocomplete="off"><button style="width:100%;margin-top:1rem">${h(t('enter'))}</button></form><div class="actions"><button class="secondary" data-view="card">${h(t('backToCard'))}</button></div></section>`);
-  document.querySelector('#pin-form').addEventListener('submit', (event) => { event.preventDefault(); if (document.querySelector('#pin').value === eventConfig.staff.pin) { staffUnlocked = true; go('staff'); } else toast(t('wrongPin')); });
+  document.querySelector('#pin-form').addEventListener('submit', (event) => { event.preventDefault(); if (document.querySelector('#pin').value === eventConfig.staff.pin) { staffUnlocked = true; const destination = staffDestination; staffDestination = 'staff'; go(destination); } else toast(t('wrongPin')); });
 }
 
 function renderStaff() {
-  shell(`${topbar(t('staff'))}<section class="panel"><p><strong>${h(state.nickname || '—')}</strong> · ${state.stamps.length} / 6</p><div class="staff-list">${eventConfig.animals.map((animal) => { const owned = state.stamps.includes(animal.id); return `<div class="staff-row"><span>${owned ? '✓' : '○'} ${h(animalName(animal, state.language))}</span><button class="${owned ? 'danger' : 'secondary'}" data-toggle-stamp="${animal.id}">${h(owned ? t('remove') : t('add'))}</button></div>`; }).join('')}</div><div class="actions"><button class="secondary" id="staff-nickname">${h(t('editNickname'))}</button><button class="secondary" id="clear-messages">${h(t('clearMessages'))}</button><button class="secondary" id="export-data">${h(t('exportData'))}</button><button class="secondary" id="import-data">${h(t('importData'))}</button><input id="import-file" type="file" accept="application/json" hidden><button class="danger" id="staff-reset">${h(t('reset'))}</button><button data-view="card">${h(t('exitStaff'))}</button></div></section>`);
+  shell(`${topbar(t('staff'))}<section class="panel"><p><strong>${h(state.nickname || '—')}</strong> · ${state.stamps.length} / 6</p><div class="staff-list">${eventConfig.animals.map((animal) => { const owned = state.stamps.includes(animal.id); return `<div class="staff-row"><span>${owned ? '✓' : '○'} ${h(animalName(animal, state.language))}</span><button class="${owned ? 'danger' : 'secondary'}" data-toggle-stamp="${animal.id}">${h(owned ? t('remove') : t('add'))}</button></div>`; }).join('')}</div><div class="actions"><button class="secondary" id="staff-nickname">${h(t('editNickname'))}</button><button class="secondary" id="clear-messages">${h(t('clearMessages'))}</button><button class="secondary" id="export-data">${h(t('exportData'))}</button><button class="secondary" id="import-data">${h(t('importData'))}</button><input id="import-file" type="file" accept="application/json" hidden><button class="secondary" data-view="qr">${h(t('qrAdmin'))}</button><button class="danger" id="staff-reset">${h(t('reset'))}</button><button data-view="card">${h(t('exitStaff'))}</button></div></section>`);
   document.querySelectorAll('[data-toggle-stamp]').forEach((button) => button.addEventListener('click', () => {
     const id = button.dataset.toggleStamp; state.stamps = state.stamps.includes(id) ? state.stamps.filter((stamp) => stamp !== id) : [...state.stamps, id];
     if (state.stamps.length === 6 && !state.completedAt) state.completedAt = new Date().toISOString(); persist(); renderStaff();
@@ -218,6 +274,7 @@ function resetAll() {
 }
 
 async function renderQr() {
+  if (!staffUnlocked) { staffDestination = 'qr'; view = 'staff-login'; renderStaffLogin(); return; }
   shell(`${topbar(t('qrAdmin'))}<section class="panel no-print"><p>${h(t('qrIntro'))}</p><div class="actions"><button id="print">${h(t('print'))}</button><button class="secondary" data-view="card">${h(t('backToCard'))}</button></div></section><section class="qr-grid">${eventConfig.animals.map((animal) => {
     const url = stationUrl(animal); return `<article class="qr-card"><h2>${h(animalName(animal, state.language))}</h2><canvas id="qr-${animal.id}" aria-label="${h(t('qrAria'))} ${h(animalName(animal, state.language))}"></canvas><p class="url">${h(url)}</p><div class="actions no-print"><button class="secondary" data-copy="${h(url)}">${h(t('copy'))}</button><button data-qr-download="${animal.id}">${h(t('qrDownload'))}</button></div></article>`;
   }).join('')}</section>`, true);
@@ -241,6 +298,7 @@ function render() {
   else if (view === 'stamp-result') renderAnimal(true, false);
   else if (view === 'duplicate') renderAnimal(true, true);
   else if (view === 'invalid') renderInvalidStamp();
+  else if (view === 'scan') renderScanner();
   else if (view === 'complete') renderComplete();
   else if (view === 'staff-login') renderStaffLogin();
   else if (view === 'staff') renderStaff();

@@ -59,6 +59,8 @@ input[type="text"], input[type="password"], textarea { width: 100%; min-height: 
 .qr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
 .qr-card { break-inside: avoid; background: white; border: 1px solid #cbd8d2; border-radius: 16px; padding: 1rem; text-align: center; }
 .qr-card canvas { width: 220px !important; height: 220px !important; max-width: 100%; }
+.qr-reader { width: 100%; min-height: 260px; overflow: hidden; border-radius: 16px; background: #102e27; }
+.qr-reader video { width: 100% !important; border-radius: 16px; }
 .url { font-family: ui-monospace, monospace; font-size: .72rem; overflow-wrap: anywhere; text-align: left; background: #eef3f0; padding: .5rem; }
 .error-box { border-left: 5px solid #a34132; background: #f9e9e6; padding: .9rem; border-radius: 8px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
