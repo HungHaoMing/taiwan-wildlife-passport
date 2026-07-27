@@ -105,10 +105,11 @@ function renderStart() {
 function cardMarkup() {
   const card = eventConfig.cardDesigns.find((item) => item.id === state.cardDesignId) || eventConfig.cardDesigns[0];
   const handwriting = eventConfig.placements.handwriting;
+  const placementStyle = (placement) => `left:${placement.x}%;top:${placement.y}%;width:${placement.maxWidth || 30}%;color:${placement.color};font-weight:${placement.fontWeight}`;
   const date = state.completedAt ? new Intl.DateTimeFormat(state.language, { dateStyle: 'medium' }).format(new Date(state.completedAt)) : '';
-  return `<div class="card-stage" aria-label="${h(t('cardAria'))}">
+  return `<div class="card-stage" style="--card-aspect:${Number(card.width) || 3}/${Number(card.height) || 4}" aria-label="${h(t('cardAria'))}">
     <img class="card-background" src="${h(assetUrl(card.image))}" data-file="${h(card.image)}" alt="${h(card.alt)}">
-    <div class="card-title">${h(eventConfig.event.name)}</div><div class="card-nickname">${h(state.nickname)}</div>
+    ${eventConfig.placements.eventName.enabled === false ? '' : `<div class="card-title" style="${placementStyle(eventConfig.placements.eventName)}">${h(eventConfig.event.name)}</div>`}<div class="card-nickname" style="${placementStyle(eventConfig.placements.nickname)}">${h(state.nickname)}</div>
     ${eventConfig.animals.map((animal) => {
       const style = `left:${animal.stampX}%;top:${animal.stampY}%;width:${animal.stampWidth}%;height:${animal.stampHeight}%;transform:translate(-50%,-50%) rotate(${animal.stampRotation}deg);z-index:${animal.stampZIndex};opacity:${animal.stampOpacity}`;
       return state.stamps.includes(animal.id)
@@ -116,7 +117,7 @@ function cardMarkup() {
         : `<div class="stamp-slot" style="${style}" aria-label="${h(t('noStamp'))}">${h(animalName(animal, state.language))}</div>`;
     }).join('')}
     ${state.handwriting ? `<img class="handwriting-preview" src="${state.handwriting}" alt="${h(t('handwritingAlt'))}" style="left:${handwriting.x}%;top:${handwriting.y}%;width:${handwriting.width}%;height:${handwriting.height}%">` : ''}
-    <div class="card-message">${h(state.textMessage)}</div><div class="card-date">${h(date)}</div>
+    <div class="card-message" style="${placementStyle(eventConfig.placements.message)}">${h(state.textMessage)}</div><div class="card-date" style="${placementStyle(eventConfig.placements.date)}">${h(date)}</div>
   </div>`;
 }
 

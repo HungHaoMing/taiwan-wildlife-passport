@@ -67,6 +67,16 @@ describe('central configuration', () => {
     }
   });
 
+  it('maps the supplied postcard and stamps in left-to-right animal order', () => {
+    expect(eventConfig.cardDesigns[0]).toMatchObject({ image: 'assets/event/postcard.jpg', width: 1323, height: 901 });
+    expect(eventConfig.output).toMatchObject({ width: 2646, height: 1802 });
+    expect(eventConfig.animals.map((animal) => animal.nameZh)).toEqual([
+      '臺灣黑熊', '臺灣獼猴', '臺灣雲豹', '帝雉', '白面鼯鼠', '臺灣琉璃小灰蝶',
+    ]);
+    expect(eventConfig.animals.map((animal) => animal.stampX)).toEqual([...eventConfig.animals.map((animal) => animal.stampX)].sort((a, b) => a - b));
+    expect(eventConfig.animals.every((animal) => animal.stampImage.startsWith('assets/event/'))).toBe(true);
+  });
+
   it('contains complete Japanese and Traditional Chinese interface translations', () => {
     const englishKeys = Object.keys(eventConfig.text.en).sort();
     expect(Object.keys(eventConfig.text.ja).sort()).toEqual(englishKeys);

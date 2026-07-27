@@ -19,45 +19,114 @@ export const eventConfig = {
     stampSound: 'assets/sounds/stamp.mp3',
   },
   cardDesigns: [
-    { id: 'card-01', name: { en: 'Card 1', ja: 'カード 1', 'zh-TW': '集章卡 1' }, image: 'assets/placeholders/card-placeholder.svg', alt: 'Placeholder electronic stamp card background' },
+    {
+      id: 'card-01',
+      name: { en: 'Taiwan Endemic Friends Postcard', ja: '台湾固有の仲間たち ポストカード', 'zh-TW': '臺灣特有種好朋友明信片' },
+      image: 'assets/event/postcard.jpg',
+      alt: 'Taiwan Endemic Friends postcard with six stamp circles',
+      width: 1323,
+      height: 901,
+    },
   ],
-  output: { width: 1800, height: 2400, filePrefix: 'wildlife-passport' },
+  output: { width: 2646, height: 1802, filePrefix: 'taiwan-endemic-friends' },
   placements: {
-    nickname: { x: 50, y: 12, maxWidth: 72, fontSize: 3.6, color: '#173f35', align: 'center', fontWeight: '700' },
-    handwriting: { x: 12, y: 70, width: 76, height: 16 },
-    message: { x: 50, y: 89, maxWidth: 76, fontSize: 2.5, color: '#173f35', align: 'center', fontWeight: '500' },
-    eventName: { x: 50, y: 5.5, maxWidth: 86, fontSize: 3, color: '#173f35', align: 'center', fontWeight: '700' },
-    date: { x: 50, y: 95, maxWidth: 70, fontSize: 2, color: '#365d54', align: 'center', fontWeight: '400' },
+    nickname: { x: 14, y: 72.8, maxWidth: 20, fontSize: 2.1, color: '#102f63', align: 'center', fontWeight: '700' },
+    handwriting: { x: 72, y: 2, width: 23, height: 13 },
+    message: { x: 50, y: 72.8, maxWidth: 42, fontSize: 1.8, color: '#102f63', align: 'center', fontWeight: '600' },
+    eventName: { enabled: false, x: 50, y: 5.5, maxWidth: 86, fontSize: 3, color: '#173f35', align: 'center', fontWeight: '700' },
+    date: { x: 86, y: 72.8, maxWidth: 20, fontSize: 1.5, color: '#365d54', align: 'center', fontWeight: '500' },
   },
   stampAnimation: { enabled: true, durationMs: 650 },
   sound: { enabled: false, path: 'assets/sounds/stamp.mp3' },
   staff: { enabled: true, pin: '2468', queryKey: 'staff' },
-  animals: Array.from({ length: 6 }, (_, index) => {
-    const n = index + 1;
-    const id = `animal${String(n).padStart(2, '0')}`;
-    const positions = [
-      [28, 29], [72, 29], [28, 48], [72, 48], [28, 64], [72, 64],
-    ];
-    return {
-      id,
-      token: [
-        'f9K2mQ7vT4xP8cR3', 'a6N8wD2zL9jS5eH7', 'u3B7pX9kC2gM6rV8',
-        'q8E4tY6nF2sJ9dW3', 'h5R9cA3vK7mZ2pL6', 'x2G6bT8qN4wD7sF9',
-      ][index],
-      nameZh: `Animal ${n}`,
-      nameEn: `Animal ${n}`,
-      nameJa: `Animal ${n}`,
-      scientificName: 'Scientific name placeholder',
-      description: { en: 'Placeholder description', ja: 'Placeholder description', 'zh-TW': 'Placeholder description' },
-      funFact: { en: 'Placeholder fun fact', ja: 'Placeholder fun fact', 'zh-TW': 'Placeholder fun fact' },
-      animalImage: `assets/placeholders/placeholder-animal-${String(n).padStart(2, '0')}.svg`,
-      stampImage: `assets/placeholders/placeholder-stamp-${String(n).padStart(2, '0')}.svg`,
-      stampX: positions[index][0], stampY: positions[index][1],
-      stampWidth: 30, stampHeight: 15, stampRotation: index % 2 ? 5 : -5,
-      stampZIndex: n, stampOpacity: 0.9,
-      altText: `Placeholder image for Animal ${n}`,
-    };
-  }),
+  // Animals follow the six circles from left to right on the supplied postcard.
+  // Until separate animal photos are supplied, each introduction reuses its stamp image.
+  animals: [
+    {
+      id: 'animal01', token: 'f9K2mQ7vT4xP8cR3',
+      nameZh: '臺灣黑熊', nameEn: 'Formosan Black Bear', nameJa: 'タイワンツキノワグマ',
+      scientificName: 'Ursus thibetanus formosanus Swinhoe, 1864',
+      description: {
+        en: 'The Formosan black bear is a Taiwan-endemic subspecies of the Asiatic black bear and Taiwan’s largest land carnivore. Many have a pale V-shaped mark on the chest.',
+        ja: 'タイワンツキノワグマは、ツキノワグマの台湾固有亜種で、台湾最大の陸生食肉目動物です。胸には淡いV字形の模様がよく見られます。',
+        'zh-TW': '臺灣黑熊是亞洲黑熊的臺灣特有亞種，也是臺灣體型最大的陸域食肉目動物。許多個體胸前有淡色的 V 字形斑紋。',
+      },
+      funFact: { en: 'It is an endemic subspecies, not a separate endemic species.', ja: '台湾固有「種」ではなく、台湾固有「亜種」です。', 'zh-TW': '牠是臺灣特有「亞種」，不是獨立的臺灣特有「種」。' },
+      animalImage: 'assets/event/stamp-formosan-black-bear.jpg', stampImage: 'assets/event/stamp-formosan-black-bear.jpg',
+      stampX: 9.6, stampY: 86.3, stampWidth: 13.4, stampHeight: 19.7, stampRotation: 0, stampZIndex: 1, stampOpacity: 1,
+      altText: 'Black-and-white circular stamp illustration of a Formosan black bear',
+    },
+    {
+      id: 'animal02', token: 'a6N8wD2zL9jS5eH7',
+      nameZh: '臺灣獼猴', nameEn: 'Formosan Macaque', nameJa: 'タイワンザル',
+      scientificName: 'Macaca cyclopis (Swinhoe, 1863)',
+      description: {
+        en: 'The Formosan macaque is a primate species found only in Taiwan. It has cheek pouches that can temporarily hold food.',
+        ja: 'タイワンザルは台湾だけに分布する固有種の霊長類です。頬袋に食べ物を一時的に入れることができます。',
+        'zh-TW': '臺灣獼猴是只分布於臺灣的靈長類特有種。牠的頰囊可以暫時存放食物。',
+      },
+      funFact: { en: 'This one is a Taiwan-endemic species.', ja: 'こちらは台湾固有の「種」です。', 'zh-TW': '牠是臺灣特有「種」。' },
+      animalImage: 'assets/event/stamp-formosan-macaque.jpg', stampImage: 'assets/event/stamp-formosan-macaque.jpg',
+      stampX: 25.8, stampY: 86.3, stampWidth: 13.4, stampHeight: 19.7, stampRotation: 0, stampZIndex: 2, stampOpacity: 1,
+      altText: 'Black-and-white circular stamp illustration of a Formosan macaque',
+    },
+    {
+      id: 'animal03', token: 'u3B7pX9kC2gM6rV8',
+      nameZh: '臺灣雲豹', nameEn: 'Formosan Clouded Leopard', nameJa: 'タイワンウンピョウ',
+      scientificName: 'Neofelis nebulosa brachyura Swinhoe, 1862',
+      description: {
+        en: 'The Formosan clouded leopard was the Taiwan-endemic subspecies of the clouded leopard. Taiwan’s Red List now classifies it as Regionally Extinct (RE).',
+        ja: 'タイワンウンピョウは、ウンピョウの台湾固有亜種でした。現在、台湾のレッドリストでは「地域絶滅（RE）」に分類されています。',
+        'zh-TW': '臺灣雲豹是雲豹的臺灣特有亞種。現行臺灣紅皮書將牠列為「區域滅絕（RE）」。',
+      },
+      funFact: { en: 'Robert Swinhoe recorded it in scientific literature in 1862.', ja: '1862年にロバート・スウィンホーが科学文献に記録しました。', 'zh-TW': '史溫侯於 1862 年將牠記錄於科學文獻。' },
+      animalImage: 'assets/event/stamp-taiwan-clouded-leopard.jpg', stampImage: 'assets/event/stamp-taiwan-clouded-leopard.jpg',
+      stampX: 42.2, stampY: 86.3, stampWidth: 13.4, stampHeight: 19.7, stampRotation: 0, stampZIndex: 3, stampOpacity: 1,
+      altText: 'Black-and-white circular stamp illustration of a Formosan clouded leopard',
+    },
+    {
+      id: 'animal04', token: 'q8E4tY6nF2sJ9dW3',
+      nameZh: '帝雉', nameEn: 'Mikado Pheasant', nameJa: 'ミカドキジ',
+      scientificName: 'Syrmaticus mikado (Ogilvie-Grant, 1906)',
+      description: {
+        en: 'The Mikado pheasant is a bird species found only in Taiwan. It lives in mountain forests and is also called the Black Long-tailed Pheasant.',
+        ja: 'ミカドキジは台湾だけに分布する固有種です。山地の森林に生息し、中国語では「黒長尾雉」とも呼ばれます。',
+        'zh-TW': '帝雉是只分布於臺灣的鳥類特有種，棲息於山區森林，也稱為黑長尾雉。',
+      },
+      funFact: { en: 'Its scientific name “mikado” is an old Japanese title for the emperor.', ja: '学名の「mikado」は、天皇を表す古い日本語に由来します。', 'zh-TW': '學名中的「mikado」來自日語中對天皇的舊稱。' },
+      animalImage: 'assets/event/stamp-mikado-pheasant.jpg', stampImage: 'assets/event/stamp-mikado-pheasant.jpg',
+      stampX: 57.6, stampY: 86.3, stampWidth: 13.4, stampHeight: 19.7, stampRotation: 0, stampZIndex: 4, stampOpacity: 1,
+      altText: 'Black-and-white circular stamp illustration of a Mikado pheasant',
+    },
+    {
+      id: 'animal05', token: 'h5R9cA3vK7mZ2pL6',
+      nameZh: '白面鼯鼠', nameEn: 'Taiwan Giant Flying Squirrel', nameJa: 'タイワンムササビ',
+      scientificName: 'Petaurista lena Thomas, 1907',
+      description: {
+        en: 'The white-faced flying squirrel is a large nocturnal flying squirrel of Taiwan. It moves between trees with a broad gliding membrane and can glide for more than 50 metres.',
+        ja: '白面鼯鼠は台湾に生息する大型の夜行性ムササビです。大きな飛膜で木々の間を移動し、50メートル以上滑空することがあります。',
+        'zh-TW': '白面鼯鼠是臺灣的大型夜行性飛鼠。牠利用寬大的飛膜在樹林間移動，最遠可滑翔超過 50 公尺。',
+      },
+      funFact: { en: 'Current Taiwan records list Petaurista lena as endemic; older sources treated it as the subspecies P. alborufus lena.', ja: '現在の台湾の目録では固有種 Petaurista lena とされますが、以前は P. alborufus lena という亜種として扱われました。', 'zh-TW': '現行臺灣名錄將牠列為特有種 Petaurista lena；較早資料則視為 P. alborufus lena 亞種。' },
+      animalImage: 'assets/event/stamp-white-faced-flying-squirrel.jpg', stampImage: 'assets/event/stamp-white-faced-flying-squirrel.jpg',
+      stampX: 73.6, stampY: 86.3, stampWidth: 13.4, stampHeight: 19.7, stampRotation: 0, stampZIndex: 5, stampOpacity: 1,
+      altText: 'Black-and-white circular stamp illustration of a white-faced flying squirrel',
+    },
+    {
+      id: 'animal06', token: 'x2G6bT8qN4wD7sF9',
+      nameZh: '臺灣琉璃小灰蝶', nameEn: 'Taiwan Blue', nameJa: 'タイワンルリシジミ',
+      scientificName: 'Acytolepis puspa myla (Fruhstorfer, 1909)',
+      description: {
+        en: 'The Taiwan blue is Taiwan’s endemic subspecies of the common hedge blue butterfly. Adults span about 25–33 mm, and males have glossy blue-violet upper wings.',
+        ja: 'タイワンルリシジミは、コモン・ヘッジ・ブルーの台湾固有亜種です。成虫の開張は約25〜33ミリで、雄の翅表は青紫色に輝きます。',
+        'zh-TW': '臺灣琉璃小灰蝶是靛色琉灰蝶的臺灣特有亞種。成蝶展翅約 25 至 33 毫米，雄蝶翅背帶有藍紫色金屬光澤。',
+      },
+      funFact: { en: 'Its larvae can use many different kinds of host plants.', ja: '幼虫は非常に多くの種類の植物を食草として利用できます。', 'zh-TW': '牠的幼蟲可以利用非常多種不同的寄主植物。' },
+      animalImage: 'assets/event/stamp-taiwan-blue.jpg', stampImage: 'assets/event/stamp-taiwan-blue.jpg',
+      stampX: 89.4, stampY: 86.3, stampWidth: 13.4, stampHeight: 19.7, stampRotation: 0, stampZIndex: 6, stampOpacity: 1,
+      altText: 'Black-and-white circular stamp illustration of a Taiwan blue butterfly',
+    },
+  ],
   text: {
     en: {
       start: 'Start', nickname: 'Nickname', nicknameHint: 'Required, up to 20 characters', chooseCard: 'Choose your card',

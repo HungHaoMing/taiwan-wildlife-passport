@@ -1,4 +1,4 @@
-const CACHE = 'wildlife-passport-v1';
+const CACHE = 'wildlife-passport-v2';
 const CORE = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {

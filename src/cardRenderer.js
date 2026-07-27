@@ -22,7 +22,7 @@ function fitText(context, text, maxWidth, initialSize, weight) {
 }
 
 function drawConfiguredText(context, text, placement, width, height) {
-  if (!text) return;
+  if (!text || placement?.enabled === false) return;
   context.save();
   context.fillStyle = placement.color;
   context.textAlign = placement.align;
