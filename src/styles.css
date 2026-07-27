@@ -28,9 +28,9 @@ input[type="text"], input[type="password"], textarea { width: 100%; min-height: 
 .card-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .75rem; }
 .card-option { border: 2px solid #b7c8c1; padding: .5rem; border-radius: 14px; }
 .card-option:has(input:checked) { border-color: #173f35; background: #e8f1ed; }
-.card-stage { position: relative; width: 100%; aspect-ratio: 3/4; overflow: hidden; border-radius: 18px; background: #e6dfcf; box-shadow: 0 8px 22px rgba(0,0,0,.14); }
+.card-stage { position: relative; width: 100%; aspect-ratio: var(--card-aspect, 3/4); overflow: hidden; border-radius: 18px; background: #e6dfcf; box-shadow: 0 8px 22px rgba(0,0,0,.14); }
 .card-background { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
-.card-title, .card-nickname, .card-message, .card-date { position: absolute; transform: translate(-50%, -50%); text-align: center; width: 80%; z-index: 20; pointer-events: none; }
+.card-title, .card-nickname, .card-message, .card-date { position: absolute; transform: translate(-50%, -50%); text-align: center; z-index: 20; pointer-events: none; }
 .card-title { top: 5.5%; left: 50%; font-weight: 800; font-size: clamp(.65rem, 3.4vw, 1.35rem); }
 .card-nickname { top: 12%; left: 50%; font-weight: 800; font-size: clamp(.8rem, 4vw, 1.6rem); }
 .card-message { top: 89%; left: 50%; font-size: clamp(.55rem, 2.8vw, 1rem); }
@@ -38,6 +38,7 @@ input[type="text"], input[type="password"], textarea { width: 100%; min-height: 
 .stamp, .stamp-slot { position: absolute; transform: translate(-50%, -50%); display: grid; place-items: center; }
 .stamp img { width: 100%; height: 100%; object-fit: contain; }
 .stamp-slot { border: 2px dashed rgba(23,63,53,.46); border-radius: 50%; color: #365d54; font-size: .58rem; text-align: center; padding: .25rem; background: rgba(255,255,255,.35); }
+.card-stage .stamp-slot { border: 0; color: transparent; background: transparent; }
 .handwriting-preview { position: absolute; object-fit: fill; z-index: 15; pointer-events: none; }
 .progress { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .progress strong { font-size: 1.4rem; }

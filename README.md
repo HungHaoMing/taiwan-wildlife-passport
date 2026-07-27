@@ -2,7 +2,7 @@
 
 供國際學術研討會文化交流活動使用的手機優先靜態網站。參加者不需安裝 App 或登入；暱稱、印章、留言與完成日期只存在使用者目前瀏覽器的 `localStorage`，不會上傳伺服器。
 
-> 本專案目前只有幾何圖形與檔名文字 placeholder，沒有 AI 產圖、網路圖片或自行設計的正式動物／印章素材。
+> 明信片底圖與六枚黑白印章已換成活動提供的正式檔案；未提供的 Logo、首頁主視覺、完成頁裝飾與獨立動物照片仍使用 placeholder。專案沒有使用 AI 產圖或網路圖片。
 
 ## 功能
 
@@ -11,7 +11,7 @@
 - 第一次由集章 QR Code 進站時，先設定暱稱，再自動補領剛才的章。
 - 六張透明印章依設定百分比疊在卡片底圖，而非顯示成普通清單。
 - 第六章完成後自動進入手寫流程；支援觸控、高 DPI、旋轉後保留、復原、清除與鍵盤留言。
-- 合成 1800 × 2400 高解析 PNG；支援下載、Web Share，以及 iPhone 開啟圖片後長按保存。
+- 合成 2646 × 1802 橫式高解析 PNG；支援下載、Web Share，以及 iPhone 開啟圖片後長按保存。
 - QR 管理／列印頁與各別 PNG 下載。
 - 工作人員補發、移除、改暱稱、清留言、二次確認重置，以及 JSON 進度匯出／匯入。
 - 相對資源路徑、離線快取與 GitHub Pages 子路徑部署。
@@ -24,6 +24,7 @@
 ├─ .github/workflows/deploy-pages.yml  # GitHub Pages 自動部署
 ├─ public/
 │  ├─ assets/placeholders/             # 可直接替換的純幾何 placeholder
+│  ├─ assets/event/                    # 活動提供的明信片與六枚印章
 │  ├─ assets/sounds/                    # 日後放蓋章音效
 │  ├─ manifest.webmanifest
 │  └─ sw.js                            # 短暫離線快取
@@ -105,9 +106,9 @@ Windows PowerShell 若停用 `.ps1`，可將上面的 `npm` 改成 `npm.cmd`。`
 |---|---|---|---:|---|---|
 | `logo.svg` / `logo.png` | 網站 Logo | SVG、PNG | 800 × 300 | 可選 | `assets.logo` |
 | `hero.jpg` | 首頁主視覺 | JPG、WebP、PNG | 1600 × 800 | 否 | `assets.hero` |
-| `card-01.png` | 電子集章卡底圖 | PNG、JPG | 1800 × 2400（3:4） | 否 | `cardDesigns[].image` |
+| `postcard.jpg` | 電子集章卡底圖（目前正式檔） | JPG | 1323 × 901（橫式） | 否 | `cardDesigns[].image` |
 | `animal-01.png`～`animal-06.png` | 六張動物介紹圖 | PNG、WebP、JPG | 1200 × 800 | 可選 | `animals[].animalImage` |
-| `stamp-01.png`～`stamp-06.png` | 六張印章 | PNG、WebP | 700 × 500 以上 | **是** | `animals[].stampImage` |
+| `stamp-*.jpg` | 六張印章（目前正式檔） | JPG | 1254 × 1254 | 否；目前為白底 | `animals[].stampImage` |
 | `completion.jpg` | 完成頁裝飾 | JPG、WebP、PNG | 1600 × 1000 | 否 | `assets.completionBackground` |
 | `stamp.mp3` | 蓋章短音效 | MP3、AAC | 1 秒內 | 不適用 | `sound.path` |
 
