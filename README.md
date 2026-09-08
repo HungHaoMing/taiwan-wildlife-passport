@@ -11,7 +11,7 @@
 - 第一次由集章 QR Code 進站時，先設定暱稱，再自動補領剛才的章。
 - 六張透明印章依設定百分比疊在卡片底圖，而非顯示成普通清單。
 - 第六章完成後自動進入手寫流程；支援觸控、高 DPI、旋轉後保留、復原、清除與鍵盤留言。
-- 合成 2646 × 1802 橫式高解析 PNG；支援下載、Web Share，以及 iPhone 開啟圖片後長按保存。
+- 合成 2646 × 4400 高解析 PNG；原明信片完整保留在上方，下方依序提供手寫區，以及暱稱、打字留言與完成日期區域。
 - QR 管理／列印頁與各別 PNG 下載。
 - 工作人員補發、移除、改暱稱、清留言、二次確認重置，以及 JSON 進度匯出／匯入。
 - 相對資源路徑、離線快取與 GitHub Pages 子路徑部署。
@@ -54,6 +54,18 @@ npm run preview
 ```
 
 Windows PowerShell 若停用 `.ps1`，可將上面的 `npm` 改成 `npm.cmd`。`npm run dev` 顯示的網址可在電腦開啟；真機測試時，請讓手機與電腦位於同一網路並使用 Vite 顯示的區網網址。
+
+### 換電腦或交給另一個 Codex
+
+```powershell
+git clone https://github.com/HungHaoMing/taiwan-wildlife-passport.git
+cd taiwan-wildlife-passport
+npm ci
+npm test
+npm run dev
+```
+
+新環境接手前先閱讀 [`AGENTS.md`](AGENTS.md) 與 [`HANDOFF.md`](HANDOFF.md)。前者是固定的開發習慣及品質規則，後者是目前版面、內容狀態、未決事項與發佈清單。素材來源及機械式轉檔紀錄位於 [`docs/ASSET_PROVENANCE.md`](docs/ASSET_PROVENANCE.md)。所有本機變更必須提交並推送後，換電腦 clone 才能取得。
 
 ## GitHub Pages 部署
 
@@ -106,13 +118,14 @@ Windows PowerShell 若停用 `.ps1`，可將上面的 `npm` 改成 `npm.cmd`。`
 |---|---|---|---:|---|---|
 | `logo.svg` / `logo.png` | 網站 Logo | SVG、PNG | 800 × 300 | 可選 | `assets.logo` |
 | `hero.jpg` | 首頁主視覺 | JPG、WebP、PNG | 1600 × 800 | 否 | `assets.hero` |
-| `postcard.jpg` | 電子集章卡底圖（目前正式檔） | JPG | 1323 × 901（橫式） | 否 | `cardDesigns[].image` |
+| `postcard-extended.png` | 電子集章卡底圖（目前正式檔） | PNG | 1323 × 2200；上方原圖 1323 × 901 | 否 | `cardDesigns[].image` |
 | `animal-01.png`～`animal-06.png` | 六張動物介紹圖 | PNG、WebP、JPG | 1200 × 800 | 可選 | `animals[].animalImage` |
-| `stamp-*.jpg` | 六張印章（目前正式檔） | JPG | 1254 × 1254 | 否；目前為白底 | `animals[].stampImage` |
+| `stamp-*.png` | 六張印章（目前正式檔） | 透明 PNG | 1254 × 1254 | **是** | `animals[].stampImage` |
 | `completion.jpg` | 完成頁裝飾 | JPG、WebP、PNG | 1600 × 1000 | 否 | `assets.completionBackground` |
 | `stamp.mp3` | 蓋章短音效 | MP3、AAC | 1 秒內 | 不適用 | `sound.path` |
 
 正式印章若尺寸比例不同，請同時調整 `stampWidth`、`stampHeight`。音效預設 `sound.enabled: false`，放入檔案後再改為 `true`。
+目前六張 JPG 原始印章仍保留在 `public/assets/event/` 作為來源備份；網站實際載入的是同資料夾內已去除白底的透明 PNG。
 
 ## QR Code 管理與現場使用
 
