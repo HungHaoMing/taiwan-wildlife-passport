@@ -68,13 +68,15 @@ describe('central configuration', () => {
   });
 
   it('maps the supplied postcard and stamps in left-to-right animal order', () => {
-    expect(eventConfig.cardDesigns[0]).toMatchObject({ image: 'assets/event/postcard.jpg', width: 1323, height: 901 });
-    expect(eventConfig.output).toMatchObject({ width: 2646, height: 1802 });
+    expect(eventConfig.cardDesigns[0]).toMatchObject({ image: 'assets/event/postcard-extended.png', width: 1323, height: 2200 });
+    expect(eventConfig.output).toMatchObject({ width: 2646, height: 4400 });
     expect(eventConfig.animals.map((animal) => animal.nameZh)).toEqual([
       '臺灣黑熊', '臺灣獼猴', '臺灣雲豹', '藍腹鷴', '臺灣長鬃飛鼠', '臺灣琉璃小灰蝶',
     ]);
     expect(eventConfig.animals.map((animal) => animal.stampX)).toEqual([...eventConfig.animals.map((animal) => animal.stampX)].sort((a, b) => a - b));
     expect(eventConfig.animals.every((animal) => animal.stampImage.startsWith('assets/event/'))).toBe(true);
+    expect(eventConfig.animals.every((animal) => animal.stampImage.endsWith('.png'))).toBe(true);
+    expect(eventConfig.placements.personalization).toMatchObject({ fillOpacity: 0.76 });
   });
 
   it('contains complete Japanese and Traditional Chinese interface translations', () => {

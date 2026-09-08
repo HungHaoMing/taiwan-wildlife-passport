@@ -34,6 +34,38 @@ function drawConfiguredText(context, text, placement, width, height) {
   context.restore();
 }
 
+function drawPersonalizationPanels(context, width, height) {
+  const panel = eventConfig.placements.personalization;
+  if (!panel) return;
+  const drawBox = (box, withDividers = false) => {
+    const x = width * box.x / 100;
+    const y = height * box.y / 100;
+    const boxWidth = width * box.width / 100;
+    const boxHeight = height * box.height / 100;
+    context.save();
+    context.globalAlpha = panel.fillOpacity;
+    context.fillStyle = panel.fill;
+    context.fillRect(x, y, boxWidth, boxHeight);
+    context.globalAlpha = 1;
+    context.strokeStyle = panel.border;
+    context.lineWidth = height * panel.borderWidth / 100;
+    context.strokeRect(x, y, boxWidth, boxHeight);
+    if (withDividers) {
+      context.strokeStyle = panel.divider;
+      context.lineWidth = Math.max(1, context.lineWidth * .65);
+      for (const fraction of [1 / 3, 2 / 3]) {
+        context.beginPath();
+        context.moveTo(x, y + boxHeight * fraction);
+        context.lineTo(x + boxWidth, y + boxHeight * fraction);
+        context.stroke();
+      }
+    }
+    context.restore();
+  };
+  drawBox(panel.handwritingBox);
+  drawBox(panel.detailsBox, true);
+}
+
 export async function renderCompletedCard(state) {
   const { width, height } = eventConfig.output;
   const canvas = document.createElement('canvas');
@@ -62,6 +94,7 @@ export async function renderCompletedCard(state) {
     }
     context.restore();
   }
+  drawPersonalizationPanels(context, width, height);
   if (state.handwriting) {
     const p = eventConfig.placements.handwriting;
     try { context.drawImage(await loadImage(state.handwriting), width * p.x / 100, height * p.y / 100, width * p.width / 100, height * p.height / 100); } catch { /* optional */ }
