@@ -4,7 +4,7 @@
 
 ## 專案定位
 
-這是「2026TIE台灣創新技術博覽會－暨大與暨大附中」使用的手機電子集點卡。參加者不需登入，以同一支手機掃描七站 QR Code；姓名、印章、手寫及文字只保存在瀏覽器 `localStorage`。網站為 Vite 靜態專案，可部署到 GitHub Pages 子路徑。
+這是「2026TIE台灣創新技術博覽會－暨大與暨大附中」使用的手機電子集點卡。參加者不需登入，以同一支手機掃描七站 QR Code；本機保存集章進度，收集 5～7 枚後可把完成明信片投稿到總關伺服器列印。
 
 - GitHub：[HungHaoMing/taiwan-wildlife-passport](https://github.com/HungHaoMing/taiwan-wildlife-passport)
 - 正式網站：[GitHub Pages](https://hunghaoming.github.io/taiwan-wildlife-passport/)
@@ -27,11 +27,12 @@
 - 七組不同 ID + token 的 QR 領章網址，可亂序、阻擋重複及錯誤 token。
 - 網頁內相機掃碼，以及用手機內建相機開啟網址的替代流程。
 - 七枚印章依百分比座標疊在新版集點卡的七個白色格子，進度使用 `localStorage` 保存。
-- 第七章觸發完成流程；手寫支援高 DPI、觸控、復原、清除、重寫及重載復原。
+- 五枚以上可開啟完成流程，第七枚會自動進入；手寫支援高 DPI、觸控、復原、清除、重寫及重載復原。
 - 100 字元鍵盤留言、高解析 PNG、Web Share 與 iPhone 長按保存替代流程；完成日期目前保留資料但未顯示。
 - PIN 門檻的工作人員模式及 QR 管理／列印頁。
 - JSON 進度匯出、匯入及二次確認重置。
 - 完成頁可產生 3600 × 2400 的橫式 4×6 滿版列印圖，並開啟系統列印確認視窗。
+- 完成頁可將 1800 × 1200 JPEG 投稿至 `https://stamp-api.bbqhung.org/api/v1/submissions`，保存並顯示兌換碼；包含穩定隨機參與者 ID、冪等鍵及狀態錯誤處理。
 - Service Worker 短暫離線快取與 GitHub Pages Actions 部署。
 
 ## 卡片版面與七站
@@ -50,6 +51,7 @@
 - 工作人員 PIN 預設：`2468`
 - QR 管理入口：`?view=qr`，仍須輸入 PIN
 - 工作人員入口：`?staff=1`
+- 一般參加者畫面不顯示本機工作人員入口；PIN 仍只是防誤觸，總關權限由獨立 server 管理。
 - PIN 與 token 都存在公開前端程式中，只能防止誤入。
 - 修改 token 後，所有舊 QR Code 立即失效，必須重新下載、列印、實掃。
 - 參加者換瀏覽器、清除網站資料或換手機都不會自動保留紀錄；需使用 JSON 匯出／匯入。
@@ -81,6 +83,7 @@ npm run dev
 - Android Chrome：七站相機掃碼、觸控手寫、旋轉、PNG 下載、Web Share、重開與短暫斷網。
 - 實際印刷 QR Code 的距離、尺寸和辨識速度。
 - Epson L3550 搭配彩之舞 HY-B862 的 4×6 橫式無邊界列印、色彩、進紙與裁切安全範圍。
+- 正式 GitHub Pages origin 對總關 API 的 CORS、5／6／7 枚各一次真實投稿、斷網重試與相同 pending 投稿更新。
 - 最終手機上的透明印章邊緣、三語字型與 3496 × 2480 圖片清晰度。
 
 完整素材來源與衍生方式見 `docs/ASSET_PROVENANCE.md`；實際測試結果見 `TEST_REPORT.md`。

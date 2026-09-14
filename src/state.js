@@ -2,11 +2,29 @@ import { eventConfig } from './config/eventConfig.js';
 
 export const STORAGE_KEY = 'taiwan-wildlife-passport-v1';
 
+function randomUuid() {
+  if (typeof globalThis.crypto?.randomUUID === 'function') return globalThis.crypto.randomUUID();
+  const bytes = new Uint8Array(16);
+  if (typeof globalThis.crypto?.getRandomValues === 'function') globalThis.crypto.getRandomValues(bytes);
+  else throw new Error('Secure random identifiers are not available in this browser.');
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = [...bytes].map((value) => value.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+function validIdentifier(value, prefix) {
+  const text = typeof value === 'string' ? value : '';
+  return text.startsWith(prefix) && text.length >= 8 && text.length <= 128 && /^[A-Za-z0-9._:-]+$/.test(text);
+}
+
 export function initialState() {
   return {
     version: 1, nickname: '', language: eventConfig.event.defaultLanguage,
     cardDesignId: eventConfig.cardDesigns[0]?.id || '', stamps: [],
     handwriting: '', textMessage: '', completedAt: '', updatedAt: new Date().toISOString(),
+    participantId: `participant:${randomUuid()}`, idempotencyKey: `submission:${randomUuid()}`,
+    submissionId: '', redemptionCode: '', submissionStatus: '', submittedStampCount: 0,
   };
 }
 
@@ -29,6 +47,12 @@ export function normalizeState(raw) {
   clean.handwriting = typeof raw.handwriting === 'string' && raw.handwriting.startsWith('data:image/png;base64,') ? raw.handwriting : '';
   clean.textMessage = sanitizeMessage(raw.textMessage);
   clean.completedAt = typeof raw.completedAt === 'string' ? raw.completedAt : '';
+  if (validIdentifier(raw.participantId, 'participant:')) clean.participantId = raw.participantId;
+  if (validIdentifier(raw.idempotencyKey, 'submission:')) clean.idempotencyKey = raw.idempotencyKey;
+  clean.submissionId = typeof raw.submissionId === 'string' && /^[A-Za-z0-9-]{1,128}$/.test(raw.submissionId) ? raw.submissionId : '';
+  clean.redemptionCode = typeof raw.redemptionCode === 'string' && /^[A-Za-z0-9]{1,32}$/.test(raw.redemptionCode) ? raw.redemptionCode : '';
+  clean.submissionStatus = raw.submissionStatus === 'pending' ? 'pending' : '';
+  clean.submittedStampCount = [5, 6, 7].includes(raw.submittedStampCount) ? raw.submittedStampCount : 0;
   clean.updatedAt = new Date().toISOString();
   return clean;
 }
@@ -57,6 +81,13 @@ export function addStamp(state, animalId) {
   const completedNow = next.stamps.length === eventConfig.animals.length;
   if (completedNow && !next.completedAt) next.completedAt = new Date().toISOString();
   return { state: next, added: true, completedNow };
+}
+
+export function submissionNeedsUpdate(state) {
+  return state.submissionStatus === 'pending'
+    && Boolean(state.submissionId && state.redemptionCode)
+    && [5, 6, 7].includes(state.submittedStampCount)
+    && state.stamps.length > state.submittedStampCount;
 }
 
 export function exportState(state) {

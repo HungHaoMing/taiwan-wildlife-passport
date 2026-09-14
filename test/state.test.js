@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { eventConfig } from '../src/config/eventConfig.js';
-import { initialState, sanitizeNickname, sanitizeMessage, normalizeState, saveState, loadState, validateStamp, addStamp, exportState, importState, STORAGE_KEY } from '../src/state.js';
+import { initialState, sanitizeNickname, sanitizeMessage, normalizeState, saveState, loadState, validateStamp, addStamp, submissionNeedsUpdate, exportState, importState, STORAGE_KEY } from '../src/state.js';
 
 function memoryStorage() {
   const values = new Map();
@@ -38,14 +38,30 @@ describe('participant data', () => {
 
   it('survives save and reload in the same browser storage', () => {
     const storage = memoryStorage();
-    const source = { ...initialState(), nickname: '再開啟', stamps: ['animal03'], textMessage: 'Saved' };
+    const source = { ...initialState(), nickname: '再開啟', stamps: ['animal01', 'animal02', 'animal03', 'animal04', 'animal05'], textMessage: 'Saved', submissionId: 'submission-id', redemptionCode: '7K3M9Q', submissionStatus: 'pending', submittedStampCount: 5 };
     expect(saveState(source, storage)).toBe(true);
     expect(storage.values.has(STORAGE_KEY)).toBe(true);
-    expect(loadState(storage)).toMatchObject({ nickname: '再開啟', stamps: ['animal03'], textMessage: 'Saved' });
+    const loaded = loadState(storage);
+    expect(loaded).toMatchObject({ nickname: '再開啟', textMessage: 'Saved', submissionId: 'submission-id', redemptionCode: '7K3M9Q', submissionStatus: 'pending', submittedStampCount: 5 });
+    expect(loaded.participantId).toBe(source.participantId);
+    expect(loaded.idempotencyKey).toBe(source.idempotencyKey);
+  });
+
+  it('marks a five-stamp pending submission for update after collecting the sixth or seventh stamp', () => {
+    let state = { ...initialState(), nickname: '更新測試', stamps: ['animal01', 'animal02', 'animal03', 'animal04', 'animal05'], submissionId: 'submission-id', redemptionCode: '7K3M9Q', submissionStatus: 'pending', submittedStampCount: 5 };
+    expect(submissionNeedsUpdate(state)).toBe(false);
+    state = addStamp(state, 'animal06').state;
+    expect(submissionNeedsUpdate(state)).toBe(true);
+    state = addStamp(state, 'animal07').state;
+    expect(submissionNeedsUpdate(state)).toBe(true);
+    expect(submissionNeedsUpdate({ ...state, submittedStampCount: 7 })).toBe(false);
   });
 
   it('normalizes tampered or old browser data safely', () => {
-    expect(normalizeState({ nickname: 123, stamps: ['animal01', 'animal01', 'bad'], language: 'bad' })).toMatchObject({ nickname: '123', stamps: ['animal01'], language: 'en' });
+    const normalized = normalizeState({ nickname: 123, stamps: ['animal01', 'animal01', 'bad'], language: 'bad', participantId: '../../bad', redemptionCode: '<script>' });
+    expect(normalized).toMatchObject({ nickname: '123', stamps: ['animal01'], language: 'en', redemptionCode: '' });
+    expect(normalized.participantId).toMatch(/^participant:[A-Za-z0-9-]+$/);
+    expect(normalized.idempotencyKey).toMatch(/^submission:[A-Za-z0-9-]+$/);
   });
 
   it('exports and imports progress without a backend', () => {
@@ -77,6 +93,12 @@ describe('central configuration', () => {
     expect(eventConfig.animals.every((animal) => animal.stampImage.startsWith('assets/event/'))).toBe(true);
     expect(eventConfig.animals.every((animal) => animal.stampImage.endsWith('.png'))).toBe(true);
     expect(eventConfig.placements.personalization).toBeNull();
+    expect(eventConfig.submission).toMatchObject({
+      apiBaseUrl: 'https://stamp-api.bbqhung.org',
+      endpoint: '/api/v1/submissions',
+      minimumStampCount: 5,
+      maxImageBytes: 6 * 1024 * 1024,
+    });
   });
 
   it('contains complete Japanese and Traditional Chinese interface translations', () => {

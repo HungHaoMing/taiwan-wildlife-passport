@@ -69,6 +69,11 @@ input[type="text"], input[type="password"], textarea { width: 100%; min-height: 
 .qr-reader video { width: 100% !important; border-radius: 16px; }
 .url { font-family: ui-monospace, monospace; font-size: .72rem; overflow-wrap: anywhere; text-align: left; background: #eef3f0; padding: .5rem; }
 .error-box { border-left: 5px solid #a34132; background: #f9e9e6; padding: .9rem; border-radius: 8px; }
+.submission-result { display: grid; gap: .45rem; margin-top: 1rem; padding: 1rem; border: 2px solid #77a18f; border-radius: 16px; background: #e8f1ed; text-align: center; }
+.submission-result.needs-update { border-color: #d49a28; background: #fff4d8; }
+.submission-result b { font: 800 clamp(2rem, 12vw, 3.8rem)/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; color: #173f35; }
+.submission-result small { display: block; }
+.submission-feedback:empty { display: none; }
 #print-area { display: none; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
 @media (max-width: 380px) { .shell { width: min(100% - 1rem, 640px); } .panel { padding: .8rem; } button, .button { padding: .65rem .7rem; } }

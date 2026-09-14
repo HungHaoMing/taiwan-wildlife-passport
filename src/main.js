@@ -2,9 +2,10 @@ import QRCode from 'qrcode';
 import { Html5Qrcode } from 'html5-qrcode';
 import './styles.css';
 import { eventConfig, textFor, animalName } from './config/eventConfig.js';
-import { initialState, loadState, saveState, sanitizeNickname, sanitizeMessage, validateStamp, addStamp, exportState, importState } from './state.js';
+import { initialState, loadState, saveState, sanitizeNickname, sanitizeMessage, validateStamp, addStamp, submissionNeedsUpdate, exportState, importState } from './state.js';
 import { createDrawingPad } from './drawingPad.js';
 import { assetUrl, renderCompletedCard } from './cardRenderer.js';
+import { submissionErrorKey, submitStampCard } from './submission.js';
 
 const app = document.querySelector('#app');
 const toastElement = document.querySelector('#toast');
@@ -17,6 +18,7 @@ let staffDestination = 'staff';
 let qrScanner = null;
 let scanLocked = false;
 let storageWorks = testStorage();
+let submissionPending = false;
 
 const params = new URLSearchParams(location.search);
 const requestedAnimalId = params.get('stamp');
@@ -39,7 +41,10 @@ function h(value) {
 }
 
 function t(key) {
-  return textFor(state.language, key).replaceAll('{count}', String(eventConfig.animals.length));
+  return textFor(state.language, key)
+    .replaceAll('{count}', String(eventConfig.animals.length))
+    .replaceAll('{minimum}', String(eventConfig.submission.minimumStampCount))
+    .replaceAll('{stampCount}', String(state.stamps.length));
 }
 function eventSubtitle() { return eventConfig.event.subtitle[state.language] || eventConfig.event.subtitle.en; }
 function persist() { if (!saveState(state)) { storageWorks = false; toast(t('storageWarning'), 5000); } }
@@ -131,13 +136,24 @@ function cardMarkup() {
   </div>`;
 }
 
+function submissionResultMarkup() {
+  if (!state.redemptionCode) return '';
+  const needsUpdate = submissionNeedsUpdate(state);
+  return `<div class="submission-result${needsUpdate ? ' needs-update' : ''}" role="status">
+    <strong>${h(needsUpdate ? t('submissionUpdateNeeded') : t('submissionSuccess'))}</strong>
+    <span>${h(t('redemptionCode'))}</span><b>${h(state.redemptionCode)}</b><small>${h(t('showCodeHint'))}</small>
+  </div>`;
+}
+
 function renderCard() {
-  const complete = state.stamps.length === eventConfig.animals.length;
+  const complete = state.stamps.length >= eventConfig.submission.minimumStampCount;
+  const needsUpdate = submissionNeedsUpdate(state);
   shell(`${topbar()}${cardMarkup()}<section class="panel">
     <div class="progress"><span>${h(t('progress'))}</span><strong>${state.stamps.length} / ${eventConfig.animals.length}</strong></div>
-    <div class="actions">${complete ? `<button data-view="complete">${h(t('preview'))}</button>` : ''}<button class="secondary" id="edit-nickname">${h(t('editNickname'))}</button><button class="secondary" id="show-help">${h(t('instructions'))}</button></div>
+    ${submissionResultMarkup()}
+    <div class="actions">${complete ? `<button data-view="complete">${h(needsUpdate ? t('submitAgain') : t('preview'))}</button>` : ''}<button class="secondary" id="edit-nickname">${h(t('editNickname'))}</button><button class="secondary" id="show-help">${h(t('instructions'))}</button></div>
   </section><section class="panel"><h2>${h(t('animals'))}</h2><div class="animal-grid">${eventConfig.animals.map((animal) => `<button class="animal-tile ${state.stamps.includes(animal.id) ? 'owned' : ''}" data-animal="${animal.id}"><span>${state.stamps.includes(animal.id) ? '✓' : '○'}</span> ${h(animalName(animal, state.language))}</button>`).join('')}</div></section>
-  <section class="panel"><div class="actions"><button data-view="scan">${h(t('scanQr'))}</button><button class="secondary" data-view="start">${h(t('home'))}</button><button class="secondary" data-view="staff-login">${h(t('staff'))}</button><button class="danger" id="reset">${h(t('reset'))}</button></div><p class="privacy">${h(t('privacy'))}</p></section>`);
+  <section class="panel"><div class="actions"><button data-view="scan">${h(t('scanQr'))}</button><button class="secondary" data-view="start">${h(t('home'))}</button>${eventConfig.staff.showParticipantEntry ? `<button class="secondary" data-view="staff-login">${h(t('staff'))}</button>` : ''}<button class="danger" id="reset">${h(t('reset'))}</button></div><p class="privacy">${h(t('privacy'))}</p></section>`);
   document.querySelectorAll('[data-animal]').forEach((button) => button.addEventListener('click', () => go('animal', { animal: eventConfig.animals.find((a) => a.id === button.dataset.animal) })));
   document.querySelector('#edit-nickname').addEventListener('click', editNickname);
   document.querySelector('#show-help').addEventListener('click', () => modal(`<h2>${h(t('instructions'))}</h2><p>${h(t('useInstructions'))}</p><p>${h(t('privacy'))}</p>`));
@@ -216,14 +232,17 @@ async function stopQrScanner() {
 }
 
 function renderComplete() {
-  if (state.stamps.length < eventConfig.animals.length) {
+  if (state.stamps.length < eventConfig.submission.minimumStampCount) {
     shell(`${topbar()}<section class="panel"><p class="error-box">${h(t('notComplete'))}</p><button data-view="card">${h(t('backToCard'))}</button></section>`); return;
   }
   shell(`${topbar(t('completeTitle'))}<section class="panel">${cardMarkup()}<p>${h(t('completeIntro'))}</p><label>${h(t('handwriting'))}</label><canvas id="drawing" class="drawing-pad" aria-label="${h(t('handwriting'))}"></canvas>
     <div class="actions"><button class="secondary" id="undo">${h(t('undo'))}</button><button class="secondary" id="clear">${h(t('clear'))}</button>${state.handwriting ? `<button class="secondary" id="rewrite">${h(t('redoWriting'))}</button>` : ''}</div>
     <label for="message">${h(t('message'))}</label><input id="message" type="text" maxlength="100" value="${h(state.textMessage)}"><small>${h(t('messageHint'))}</small>
     <div class="actions"><button id="save-completion">${h(t('save'))}</button><button class="secondary" data-view="card">${h(t('backToCard'))}</button></div></section>
-    <section class="panel"><h2>${h(t('preview'))}</h2><div class="actions"><button id="print-card">${h(t('printCard'))}</button><button class="secondary" id="download">${h(t('download'))}</button>${navigator.share ? `<button class="secondary" id="share">${h(t('share'))}</button>` : ''}<button class="secondary" id="open-image">${h(t('openImage'))}</button></div><p class="hint print-hint">${h(t('printCardHint'))}</p></section>`);
+    <section class="panel"><h2>${h(t('preview'))}</h2>
+      ${submissionResultMarkup()}
+      <p id="submission-feedback" class="submission-feedback hint" aria-live="polite"></p>
+      <div class="actions"><button id="submit-card" ${submissionPending ? 'disabled' : ''}>${h(submissionPending ? t('submitting') : state.redemptionCode ? t('submitAgain') : t('submitForPrint'))}</button><button class="secondary" id="print-card">${h(t('printCard'))}</button><button class="secondary" id="download">${h(t('download'))}</button>${navigator.share ? `<button class="secondary" id="share">${h(t('share'))}</button>` : ''}<button class="secondary" id="open-image">${h(t('openImage'))}</button></div><p class="hint">${h(t('submitHint'))}</p><p class="hint print-hint">${h(t('printCardHint'))}</p></section>`);
   drawingPad = createDrawingPad(document.querySelector('#drawing'), state.handwriting);
   document.querySelector('#undo').addEventListener('click', () => drawingPad.undo());
   document.querySelector('#clear').addEventListener('click', () => { if (confirm(t('confirmClear'))) drawingPad.clear(); });
@@ -232,6 +251,7 @@ function renderComplete() {
     if ((state.handwriting || state.textMessage) && !confirm(t('confirmEdit'))) return;
     state.handwriting = drawingPad.dataUrl(); state.textMessage = sanitizeMessage(document.querySelector('#message').value); persist(); toast(t('saved')); renderComplete();
   });
+  document.querySelector('#submit-card').addEventListener('click', submitCompleted);
   document.querySelector('#print-card').addEventListener('click', printCompleted);
   document.querySelector('#download').addEventListener('click', downloadCompleted);
   document.querySelector('#open-image').addEventListener('click', openCompletedImage);
@@ -242,10 +262,10 @@ async function completedBlob() {
   const canvas = await renderCompletedCard({ ...state, textMessage: sanitizeMessage(document.querySelector('#message')?.value ?? state.textMessage) });
   return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve({ blob, canvas }) : reject(new Error('png-failed')), 'image/png'));
 }
-function createPrintCanvas(source) {
+function createPrintCanvas(source, targetWidth = 3600, targetHeight = 2400) {
   const canvas = document.createElement('canvas');
-  canvas.width = 3600;
-  canvas.height = 2400;
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
   const context = canvas.getContext('2d');
   context.fillStyle = '#dcebef';
   context.fillRect(0, 0, canvas.width, canvas.height);
@@ -254,6 +274,60 @@ function createPrintCanvas(source) {
   const height = source.height * scale;
   context.drawImage(source, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
   return canvas;
+}
+
+function canvasBlob(canvas, type, quality) {
+  return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('image-encode-failed')), type, quality));
+}
+
+async function submissionBlob(source) {
+  const canvas = createPrintCanvas(source, eventConfig.submission.imageWidth, eventConfig.submission.imageHeight);
+  const blob = await canvasBlob(canvas, 'image/jpeg', eventConfig.submission.jpegQuality);
+  if (blob.size > eventConfig.submission.maxImageBytes) throw new Error('image-too-large');
+  return blob;
+}
+
+async function submitCompleted() {
+  const button = document.querySelector('#submit-card');
+  if (!button || submissionPending) return;
+  submissionPending = true;
+  button.disabled = true;
+  button.textContent = t('submitting');
+  const feedback = document.querySelector('#submission-feedback');
+  if (feedback) feedback.textContent = t('submitting');
+  try {
+    state.handwriting = drawingPad?.dataUrl() || state.handwriting;
+    state.textMessage = sanitizeMessage(document.querySelector('#message')?.value ?? state.textMessage);
+    if (!state.completedAt) state.completedAt = new Date().toISOString();
+    persist();
+    const { canvas } = await completedBlob();
+    const result = await submitStampCard({
+      apiBaseUrl: eventConfig.submission.apiBaseUrl,
+      endpoint: eventConfig.submission.endpoint,
+      participantId: state.participantId,
+      nickname: state.nickname,
+      stampCount: state.stamps.length,
+      submittedAt: new Date().toISOString(),
+      imageBlob: await submissionBlob(canvas),
+      idempotencyKey: state.idempotencyKey,
+    });
+    state.submissionId = result.submissionId;
+    state.redemptionCode = result.redemptionCode;
+    state.submissionStatus = result.status;
+    state.submittedStampCount = state.stamps.length;
+    persist();
+    toast(result.updated ? t('submissionUpdated') : t('submissionSuccess'), 5000);
+    renderComplete();
+  } catch (error) {
+    const message = error?.message === 'image-too-large' ? t('imageTooLarge') : t(submissionErrorKey(error));
+    toast(message, 6000);
+    const currentFeedback = document.querySelector('#submission-feedback');
+    if (currentFeedback) { currentFeedback.className = 'submission-feedback error-box'; currentFeedback.textContent = message; }
+  } finally {
+    submissionPending = false;
+    const currentButton = document.querySelector('#submit-card');
+    if (currentButton) { currentButton.disabled = false; currentButton.textContent = state.redemptionCode ? t('submitAgain') : t('submitForPrint'); }
+  }
 }
 async function printCompleted() {
   try {
