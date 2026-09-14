@@ -20,13 +20,13 @@ The task is complete only when the requested behavior works, `npm test` and `npm
 - Use only formal images supplied by the user. AI-generated images, self-drawn formal artwork, downloaded images, and questionable third-party assets are outside this project.
 - Missing formal assets use labeled placeholders or simple geometry so functionality can continue.
 - Deterministic processing of user-supplied files is allowed when needed for format, transparency, sizing, or layout. Preserve the source file and record the derivative in `docs/ASSET_PROVENANCE.md`.
-- Preserve the supplied postcard's original 1323 × 901 upper region pixel-for-pixel. Layout additions belong below it unless the user explicitly changes that rule.
+- Preserve every user-supplied source image unchanged. Apply placement, rotation, and other display-only adjustments through configuration unless the user explicitly requests a derived asset.
 
 ## Source of truth
 
 - Keep event text, translations, asset paths, QR tokens, card dimensions, placements, animation, audio, and staff settings in `src/config/eventConfig.js`.
-- Components render configuration; they do not duplicate animal names, tokens, image paths, or coordinates.
-- Verify wildlife facts with authoritative Taiwan sources. Distinguish endemic species from endemic subspecies and label unresolved taxonomy clearly.
+- Components render configuration; they do not duplicate work names, tokens, image paths, or coordinates. The legacy `animals` field name may remain for storage compatibility.
+- Do not infer work names, themes, or descriptions from the supplied images. Use only content confirmed by the project owner.
 - Keep all canvas inputs under `public/` to avoid cross-origin export failures.
 
 ## Engineering constraints
@@ -40,8 +40,7 @@ The task is complete only when the requested behavior works, `npm test` and `npm
 ## Verification
 
 - Run `npm test` and `npm run build` after code, configuration, or asset changes.
-- For card-layout work, inspect a narrow mobile viewport with zero and six stamps, saved handwriting, a long keyboard message, and a completion date.
-- For derived images, check dimensions, alpha transparency, and postcard upper-region integrity.
+- For card-layout work, inspect a narrow mobile viewport with zero and seven stamps, saved handwriting, and a long keyboard message. Check the completion date only when its placement is enabled.
+- For derived images, check dimensions, alpha transparency, and preservation of the supplied source file.
 - Real iPhone and Android checks remain required for camera permission, touch drawing, orientation, download/share, long-press save, and offline behavior.
 - Never claim GitHub deployment from a local push alone. Confirm the Pages workflow succeeds and the live site serves the new revision.
-

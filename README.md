@@ -86,7 +86,7 @@ npm run dev
 所有正式內容都在 [`src/config/eventConfig.js`](src/config/eventConfig.js)，不用改核心程式。
 
 - 活動名稱、日期、語言：`event`
-- Logo、首頁／完成圖、音效：`assets` 與 `sound`
+- Logo、首頁主視覺、音效：`assets` 與 `sound`；完成頁直接顯示合成後的完成卡片。
 - 一張或多張卡片底圖：`cardDesigns`；有多張時開始頁會自動顯示選擇器。
 - 暱稱、手寫、鍵盤留言、活動名稱與日期位置：`placements`
 - PNG 大小：`output.width`、`output.height`
