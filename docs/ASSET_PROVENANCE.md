@@ -1,10 +1,32 @@
 # 素材來源與衍生紀錄
 
-更新日期：2026-09-08
+更新日期：2026-09-14
 
 ## 使用原則
 
-所有正式視覺素材均由專案擁有者提供。本專案沒有使用 AI 產圖、網路下載圖片或另外繪製正式動物、印章及卡片素材。未提供的 Logo、首頁主視覺、完成頁裝飾和獨立動物照片繼續使用明確標示的 placeholder。
+所有正式視覺素材均由專案擁有者提供。本專案沒有使用 AI 產圖、網路下載圖片或另外繪製正式作品、印章及卡片素材。首頁 Logo 已使用提供的正式檔案，首頁主視覺暫用新版集點卡；完成頁直接使用程式依目前進度合成的完成卡片，不使用另外的裝飾圖。
+
+## 2026 TIE 新版素材
+
+活動名稱：`2026TIE台灣創新技術博覽會－暨大與暨大附中`
+
+以下 PNG 均由專案擁有者於 2026-09-14 提供，專案中的副本與附件 SHA-256 完全相同，沒有重繪、生成、裁切、旋轉或去背。作品名稱及正式順序尚待提供，因此目前只使用中性編號；畫面上的 `14.9°` 順時鐘旋轉由 `src/config/eventConfig.js` 在顯示與輸出時套用，來源檔維持不變。
+
+| 原始附件名稱 | 專案中的來源備份 | 尺寸 | SHA-256 |
+|---|---|---:|---|
+| `2026創博集點卡/1.png` | `public/assets/event/2026-tie/point-card-source.png` | 1748 × 1240 RGB | `091db7fe…57bf69` |
+| `2026創博集點卡.png` | `public/assets/event/2026-tie/stamp-source-01.png` | 152 × 153 RGBA | `5c6564c7…05f0495` |
+| `2026創博集點卡 (1).png` | `public/assets/event/2026-tie/stamp-source-02.png` | 169 × 166 RGBA | `95ab563d…4fbc0d2` |
+| `2026創博集點卡 (2).png` | `public/assets/event/2026-tie/stamp-source-03.png` | 174 × 173 RGBA | `4acff4e0…cab4f6` |
+| `2026創博集點卡 (3).png` | `public/assets/event/2026-tie/stamp-source-04.png` | 158 × 153 RGBA | `d219c063…13ee3a` |
+| `2026創博集點卡 (4).png` | `public/assets/event/2026-tie/stamp-source-05.png` | 159 × 150 RGBA | `df127d00…0c91a7` |
+| `2026創博集點卡 (6).png` | `public/assets/event/2026-tie/stamp-source-06.png` | 171 × 159 RGBA | `8300b244…1780d` |
+| `2026創博集點卡 (7).png` | `public/assets/event/2026-tie/stamp-source-07.png` | 168 × 160 RGBA | `9d351968…2aa667` |
+| `Logo Placeholder.png` | `public/assets/event/2026-tie/logo-source.png` | 800 × 300 RGBA | `47256d41…fdde7ab` |
+
+七枚印章原檔都已包含透明通道，無須使用 `scripts/remove_stamp_background.py`。舊版明信片與六枚動物印章仍保留於 `public/assets/event/`，未被覆蓋。
+
+首頁 Logo 直接使用 `logo-source.png`；Hero 暫時直接引用 `point-card-source.png`，沒有建立或修改另一份圖片。
 
 ## 使用者提供的來源檔
 
@@ -42,4 +64,3 @@
 - JPG 保留作為可追溯來源，PNG 作為網站及 Canvas 的正式輸入。
 
 若日後使用者提供原生透明 PNG，直接保存新原檔、更新本表與 `src/config/eventConfig.js`，不要再套用目前的白底去除規則。
-

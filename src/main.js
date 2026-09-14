@@ -38,7 +38,9 @@ function h(value) {
   return String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
 }
 
-function t(key) { return textFor(state.language, key); }
+function t(key) {
+  return textFor(state.language, key).replaceAll('{count}', String(eventConfig.animals.length));
+}
 function eventSubtitle() { return eventConfig.event.subtitle[state.language] || eventConfig.event.subtitle.en; }
 function persist() { if (!saveState(state)) { storageWorks = false; toast(t('storageWarning'), 5000); } }
 function toast(message, duration = 2600) { toastElement.textContent = message; toastElement.classList.add('show'); setTimeout(() => toastElement.classList.remove('show'), duration); }
@@ -85,7 +87,7 @@ function claimPendingStamp() {
 function renderStart() {
   const selected = state.cardDesignId;
   shell(`${topbar()}<section class="panel">
-    <img class="hero" src="${h(assetUrl(eventConfig.assets.hero))}" data-file="${h(eventConfig.assets.hero)}" alt="${h(t('heroAlt'))}">
+    <img class="hero start-hero" src="${h(assetUrl(eventConfig.assets.hero))}" data-file="${h(eventConfig.assets.hero)}" alt="${h(t('heroAlt'))}">
     <img src="${h(assetUrl(eventConfig.assets.logo))}" data-file="${h(eventConfig.assets.logo)}" alt="${h(t('logoAlt'))}" style="width:min(70%,320px);display:block;margin:1rem auto">
     <h1>${h(eventConfig.event.name)}</h1><p class="subtitle">${h(eventSubtitle())}</p><p>${h(t('intro'))}</p>
     ${invalidStampRequest ? `<p class="error-box" role="alert">${h(t('invalidStamp'))}</p>` : ''}
@@ -108,11 +110,15 @@ function cardMarkup() {
   const personalization = eventConfig.placements.personalization;
   const placementStyle = (placement) => `left:${placement.x}%;top:${placement.y}%;width:${placement.maxWidth || 30}%;color:${placement.color};font-weight:${placement.fontWeight}`;
   const boxStyle = (box) => `left:${box.x}%;top:${box.y}%;width:${box.width}%;height:${box.height}%;--panel-fill:${personalization.fill};--panel-opacity:${personalization.fillOpacity};--panel-border:${personalization.border};--panel-divider:${personalization.divider}`;
-  const date = state.completedAt ? new Intl.DateTimeFormat(state.language, { dateStyle: 'medium' }).format(new Date(state.completedAt)) : '';
+  const personalizationMarkup = personalization
+    ? `<div class="personalization-box handwriting-box" style="${boxStyle(personalization.handwritingBox)}"></div><div class="personalization-box details-box" style="${boxStyle(personalization.detailsBox)}"></div>`
+    : '';
+  const date = eventConfig.placements.date.enabled !== false && state.completedAt
+    ? new Intl.DateTimeFormat(state.language, { dateStyle: 'medium' }).format(new Date(state.completedAt))
+    : '';
   return `<div class="card-stage" style="--card-aspect:${Number(card.width) || 3}/${Number(card.height) || 4}" aria-label="${h(t('cardAria'))}">
     <img class="card-background" src="${h(assetUrl(card.image))}" data-file="${h(card.image)}" alt="${h(card.alt)}">
-    <div class="personalization-box handwriting-box" style="${boxStyle(personalization.handwritingBox)}"></div>
-    <div class="personalization-box details-box" style="${boxStyle(personalization.detailsBox)}"></div>
+    ${personalizationMarkup}
     ${eventConfig.placements.eventName.enabled === false ? '' : `<div class="card-title" style="${placementStyle(eventConfig.placements.eventName)}">${h(eventConfig.event.name)}</div>`}<div class="card-nickname" style="${placementStyle(eventConfig.placements.nickname)}">${h(state.nickname)}</div>
     ${eventConfig.animals.map((animal) => {
       const style = `left:${animal.stampX}%;top:${animal.stampY}%;width:${animal.stampWidth}%;height:${animal.stampHeight}%;transform:translate(-50%,-50%) rotate(${animal.stampRotation}deg);z-index:${animal.stampZIndex};opacity:${animal.stampOpacity}`;
@@ -213,11 +219,11 @@ function renderComplete() {
   if (state.stamps.length < eventConfig.animals.length) {
     shell(`${topbar()}<section class="panel"><p class="error-box">${h(t('notComplete'))}</p><button data-view="card">${h(t('backToCard'))}</button></section>`); return;
   }
-  shell(`${topbar(t('completeTitle'))}<section class="panel"><img class="hero" src="${h(assetUrl(eventConfig.assets.completionBackground))}" data-file="${h(eventConfig.assets.completionBackground)}" alt="${h(t('completionAlt'))}"><p>${h(t('completeIntro'))}</p><label>${h(t('handwriting'))}</label><canvas id="drawing" class="drawing-pad" aria-label="${h(t('handwriting'))}"></canvas>
+  shell(`${topbar(t('completeTitle'))}<section class="panel">${cardMarkup()}<p>${h(t('completeIntro'))}</p><label>${h(t('handwriting'))}</label><canvas id="drawing" class="drawing-pad" aria-label="${h(t('handwriting'))}"></canvas>
     <div class="actions"><button class="secondary" id="undo">${h(t('undo'))}</button><button class="secondary" id="clear">${h(t('clear'))}</button>${state.handwriting ? `<button class="secondary" id="rewrite">${h(t('redoWriting'))}</button>` : ''}</div>
     <label for="message">${h(t('message'))}</label><input id="message" type="text" maxlength="100" value="${h(state.textMessage)}"><small>${h(t('messageHint'))}</small>
     <div class="actions"><button id="save-completion">${h(t('save'))}</button><button class="secondary" data-view="card">${h(t('backToCard'))}</button></div></section>
-    <section class="panel"><h2>${h(t('preview'))}</h2>${cardMarkup()}<div class="actions"><button id="download">${h(t('download'))}</button>${navigator.share ? `<button class="secondary" id="share">${h(t('share'))}</button>` : ''}<button class="secondary" id="open-image">${h(t('openImage'))}</button></div></section>`);
+    <section class="panel"><h2>${h(t('preview'))}</h2><div class="actions"><button id="print-card">${h(t('printCard'))}</button><button class="secondary" id="download">${h(t('download'))}</button>${navigator.share ? `<button class="secondary" id="share">${h(t('share'))}</button>` : ''}<button class="secondary" id="open-image">${h(t('openImage'))}</button></div><p class="hint print-hint">${h(t('printCardHint'))}</p></section>`);
   drawingPad = createDrawingPad(document.querySelector('#drawing'), state.handwriting);
   document.querySelector('#undo').addEventListener('click', () => drawingPad.undo());
   document.querySelector('#clear').addEventListener('click', () => { if (confirm(t('confirmClear'))) drawingPad.clear(); });
@@ -226,6 +232,7 @@ function renderComplete() {
     if ((state.handwriting || state.textMessage) && !confirm(t('confirmEdit'))) return;
     state.handwriting = drawingPad.dataUrl(); state.textMessage = sanitizeMessage(document.querySelector('#message').value); persist(); toast(t('saved')); renderComplete();
   });
+  document.querySelector('#print-card').addEventListener('click', printCompleted);
   document.querySelector('#download').addEventListener('click', downloadCompleted);
   document.querySelector('#open-image').addEventListener('click', openCompletedImage);
   document.querySelector('#share')?.addEventListener('click', shareCompleted);
@@ -234,6 +241,49 @@ function renderComplete() {
 async function completedBlob() {
   const canvas = await renderCompletedCard({ ...state, textMessage: sanitizeMessage(document.querySelector('#message')?.value ?? state.textMessage) });
   return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve({ blob, canvas }) : reject(new Error('png-failed')), 'image/png'));
+}
+function createPrintCanvas(source) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 3600;
+  canvas.height = 2400;
+  const context = canvas.getContext('2d');
+  context.fillStyle = '#dcebef';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  const scale = Math.min(canvas.width / source.width, canvas.height / source.height);
+  const width = source.width * scale;
+  const height = source.height * scale;
+  context.drawImage(source, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
+  return canvas;
+}
+async function printCompleted() {
+  try {
+    const { canvas } = await completedBlob();
+    document.querySelector('#print-area')?.remove();
+    const printArea = document.createElement('div');
+    printArea.id = 'print-area';
+    const image = document.createElement('img');
+    image.alt = t('preview');
+    image.src = createPrintCanvas(canvas).toDataURL('image/png');
+    printArea.append(image);
+    document.body.append(printArea);
+    document.body.classList.add('printing-card');
+    const pageStyle = document.createElement('style');
+    pageStyle.id = 'print-page-style';
+    pageStyle.textContent = '@page { size: 6in 4in; margin: 0; }';
+    document.head.append(pageStyle);
+    await image.decode();
+    window.addEventListener('afterprint', () => {
+      printArea.remove();
+      pageStyle.remove();
+      document.body.classList.remove('printing-card');
+    }, { once: true });
+    window.print();
+  } catch {
+    document.querySelector('#print-area')?.remove();
+    document.querySelector('#print-page-style')?.remove();
+    document.body.classList.remove('printing-card');
+    toast(t('exportError'), 5000);
+  }
 }
 async function downloadCompleted() {
   try {
@@ -244,7 +294,7 @@ async function openCompletedImage() {
   try { const { canvas } = await completedBlob(); modal(`<h2>${h(t('openImage'))}</h2><p>${h(t('longPressSave'))}</p><img src="${canvas.toDataURL('image/png')}" alt="${h(t('preview'))}">`); } catch { toast(t('exportError'), 5000); }
 }
 async function shareCompleted() {
-  try { const { blob } = await completedBlob(); const file = new File([blob], 'wildlife-passport.png', { type: 'image/png' }); if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: eventConfig.event.name }); else await openCompletedImage(); } catch (error) { if (error.name !== 'AbortError') toast(t('exportError'), 5000); }
+  try { const { blob } = await completedBlob(); const file = new File([blob], `${eventConfig.output.filePrefix}.png`, { type: 'image/png' }); if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: eventConfig.event.name }); else await openCompletedImage(); } catch (error) { if (error.name !== 'AbortError') toast(t('exportError'), 5000); }
 }
 
 function renderStaffLogin() {
@@ -254,10 +304,10 @@ function renderStaffLogin() {
 }
 
 function renderStaff() {
-  shell(`${topbar(t('staff'))}<section class="panel"><p><strong>${h(state.nickname || '—')}</strong> · ${state.stamps.length} / 6</p><div class="staff-list">${eventConfig.animals.map((animal) => { const owned = state.stamps.includes(animal.id); return `<div class="staff-row"><span>${owned ? '✓' : '○'} ${h(animalName(animal, state.language))}</span><button class="${owned ? 'danger' : 'secondary'}" data-toggle-stamp="${animal.id}">${h(owned ? t('remove') : t('add'))}</button></div>`; }).join('')}</div><div class="actions"><button class="secondary" id="staff-nickname">${h(t('editNickname'))}</button><button class="secondary" id="clear-messages">${h(t('clearMessages'))}</button><button class="secondary" id="export-data">${h(t('exportData'))}</button><button class="secondary" id="import-data">${h(t('importData'))}</button><input id="import-file" type="file" accept="application/json" hidden><button class="secondary" data-view="qr">${h(t('qrAdmin'))}</button><button class="danger" id="staff-reset">${h(t('reset'))}</button><button data-view="card">${h(t('exitStaff'))}</button></div></section>`);
+  shell(`${topbar(t('staff'))}<section class="panel"><p><strong>${h(state.nickname || '—')}</strong> · ${state.stamps.length} / ${eventConfig.animals.length}</p><div class="staff-list">${eventConfig.animals.map((animal) => { const owned = state.stamps.includes(animal.id); return `<div class="staff-row"><span>${owned ? '✓' : '○'} ${h(animalName(animal, state.language))}</span><button class="${owned ? 'danger' : 'secondary'}" data-toggle-stamp="${animal.id}">${h(owned ? t('remove') : t('add'))}</button></div>`; }).join('')}</div><div class="actions"><button class="secondary" id="staff-nickname">${h(t('editNickname'))}</button><button class="secondary" id="clear-messages">${h(t('clearMessages'))}</button><button class="secondary" id="export-data">${h(t('exportData'))}</button><button class="secondary" id="import-data">${h(t('importData'))}</button><input id="import-file" type="file" accept="application/json" hidden><button class="secondary" data-view="qr">${h(t('qrAdmin'))}</button><button class="danger" id="staff-reset">${h(t('reset'))}</button><button data-view="card">${h(t('exitStaff'))}</button></div></section>`);
   document.querySelectorAll('[data-toggle-stamp]').forEach((button) => button.addEventListener('click', () => {
     const id = button.dataset.toggleStamp; state.stamps = state.stamps.includes(id) ? state.stamps.filter((stamp) => stamp !== id) : [...state.stamps, id];
-    if (state.stamps.length === 6 && !state.completedAt) state.completedAt = new Date().toISOString(); persist(); renderStaff();
+    if (state.stamps.length === eventConfig.animals.length && !state.completedAt) state.completedAt = new Date().toISOString(); persist(); renderStaff();
   }));
   document.querySelector('#staff-nickname').addEventListener('click', editNickname);
   document.querySelector('#clear-messages').addEventListener('click', () => { if (confirm(t('confirmClear'))) { state.handwriting = ''; state.textMessage = ''; persist(); renderStaff(); } });
@@ -268,7 +318,7 @@ function renderStaff() {
 }
 
 function exportProgress() {
-  const blob = new Blob([exportState(state)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = 'wildlife-passport-progress.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const blob = new Blob([exportState(state)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = '2026-tie-point-card-progress.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 async function importProgressFile(event) {
   try { state = importState(await event.target.files[0].text()); persist(); toast(t('saved')); render(); } catch { toast(t('importError'), 5000); }

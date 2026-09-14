@@ -25,15 +25,15 @@ describe('participant data', () => {
     expect(validateStamp('animal99', animal.token)).toBeNull();
   });
 
-  it('adds six stamps in any order, prevents duplicates, and records completion', () => {
+  it('adds all configured stamps in any order, prevents duplicates, and records completion', () => {
     let state = { ...initialState(), nickname: 'Tester' };
-    const order = [4, 1, 5, 0, 3, 2];
+    const order = [4, 1, 6, 5, 0, 3, 2];
     for (const index of order) state = addStamp(state, eventConfig.animals[index].id).state;
-    expect(state.stamps).toHaveLength(6);
+    expect(state.stamps).toHaveLength(eventConfig.animals.length);
     expect(state.completedAt).not.toBe('');
     const duplicate = addStamp(state, eventConfig.animals[0].id);
     expect(duplicate.added).toBe(false);
-    expect(duplicate.state.stamps).toHaveLength(6);
+    expect(duplicate.state.stamps).toHaveLength(eventConfig.animals.length);
   });
 
   it('survives save and reload in the same browser storage', () => {
@@ -56,9 +56,9 @@ describe('participant data', () => {
 });
 
 describe('central configuration', () => {
-  it('defines six independent assets, secure-looking tokens, and relative placements', () => {
-    expect(eventConfig.animals).toHaveLength(6);
-    expect(new Set(eventConfig.animals.map((animal) => animal.token)).size).toBe(6);
+  it('defines seven independent assets, secure-looking tokens, and relative placements', () => {
+    expect(eventConfig.animals).toHaveLength(7);
+    expect(new Set(eventConfig.animals.map((animal) => animal.token)).size).toBe(7);
     for (const animal of eventConfig.animals) {
       expect(animal.token.length).toBeGreaterThanOrEqual(16);
       expect(animal.animalImage).toMatch(/^assets\//);
@@ -67,16 +67,16 @@ describe('central configuration', () => {
     }
   });
 
-  it('maps the supplied postcard and stamps in left-to-right animal order', () => {
-    expect(eventConfig.cardDesigns[0]).toMatchObject({ image: 'assets/event/postcard-extended.png', width: 1323, height: 2200 });
-    expect(eventConfig.output).toMatchObject({ width: 2646, height: 4400 });
+  it('maps the supplied 2026 TIE card and centers seven rotated stamps on its white spaces', () => {
+    expect(eventConfig.cardDesigns[0]).toMatchObject({ image: 'assets/event/2026-tie/point-card-source.png', width: 1748, height: 1240 });
+    expect(eventConfig.output).toMatchObject({ width: 3496, height: 2480 });
     expect(eventConfig.animals.map((animal) => animal.nameZh)).toEqual([
-      '臺灣黑熊', '臺灣獼猴', '臺灣雲豹', '藍腹鷴', '臺灣長鬃飛鼠', '臺灣琉璃小灰蝶',
+      '作品 1', '作品 2', '作品 3', '作品 4', '作品 5', '作品 6', '作品 7',
     ]);
-    expect(eventConfig.animals.map((animal) => animal.stampX)).toEqual([...eventConfig.animals.map((animal) => animal.stampX)].sort((a, b) => a - b));
+    expect(eventConfig.animals.every((animal) => animal.stampRotation === 14.9)).toBe(true);
     expect(eventConfig.animals.every((animal) => animal.stampImage.startsWith('assets/event/'))).toBe(true);
     expect(eventConfig.animals.every((animal) => animal.stampImage.endsWith('.png'))).toBe(true);
-    expect(eventConfig.placements.personalization).toMatchObject({ fillOpacity: 0.76 });
+    expect(eventConfig.placements.personalization).toBeNull();
   });
 
   it('contains complete Japanese and Traditional Chinese interface translations', () => {

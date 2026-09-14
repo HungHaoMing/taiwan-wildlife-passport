@@ -17,6 +17,7 @@ img { max-width: 100%; }
 .language { min-height: 44px; border: 2px solid #b7c8c1; border-radius: 12px; padding: .5rem; background: white; }
 .panel { background: rgba(255,255,255,.93); border: 1px solid #d6ded9; border-radius: 22px; padding: 1.1rem; box-shadow: 0 9px 30px rgba(23,63,53,.08); margin-bottom: 1rem; }
 .hero { aspect-ratio: 16/8; width: 100%; object-fit: cover; border-radius: 16px; background: #dbe8e2; }
+.start-hero { aspect-ratio: 1748/1240; object-fit: contain; }
 h1, h2, h3 { line-height: 1.15; }
 h1 { font-size: clamp(1.8rem, 8vw, 2.8rem); }
 .subtitle { color: #526b64; }
@@ -68,6 +69,17 @@ input[type="text"], input[type="password"], textarea { width: 100%; min-height: 
 .qr-reader video { width: 100% !important; border-radius: 16px; }
 .url { font-family: ui-monospace, monospace; font-size: .72rem; overflow-wrap: anywhere; text-align: left; background: #eef3f0; padding: .5rem; }
 .error-box { border-left: 5px solid #a34132; background: #f9e9e6; padding: .9rem; border-radius: 8px; }
+#print-area { display: none; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
 @media (max-width: 380px) { .shell { width: min(100% - 1rem, 640px); } .panel { padding: .8rem; } button, .button { padding: .65rem .7rem; } }
-@media print { body { background: white; } .no-print, .topbar { display: none !important; } .wide { width: 100%; } .qr-grid { grid-template-columns: repeat(2, 1fr); } .qr-card { border: 1px solid #333; page-break-inside: avoid; } }
+@media print {
+  body { background: white; }
+  .no-print, .topbar { display: none !important; }
+  .wide { width: 100%; }
+  .qr-grid { grid-template-columns: repeat(2, 1fr); }
+  .qr-card { border: 1px solid #333; page-break-inside: avoid; }
+  body.printing-card { width: 6in; height: 4in; margin: 0; padding: 0; overflow: hidden; }
+  body.printing-card > *:not(#print-area) { display: none !important; }
+  #print-area { display: block; position: fixed; inset: 0; width: 6in; height: 4in; overflow: hidden; }
+  #print-area img { display: block; width: 6in; height: 4in; object-fit: contain; }
+}

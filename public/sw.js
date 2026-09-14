@@ -1,4 +1,4 @@
-const CACHE = 'wildlife-passport-v3';
+const CACHE = '2026-tie-point-card-v1';
 const CORE = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
