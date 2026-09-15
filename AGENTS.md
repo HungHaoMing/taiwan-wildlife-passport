@@ -3,8 +3,9 @@
 ## Start every task
 
 1. Read `HANDOFF.md` for current decisions, known uncertainties, and release checks.
-2. Read `README.md` for participant, staff, configuration, and deployment behavior.
-3. Inspect `git status -sb` before editing. Preserve all user work and keep unrelated changes out of commits.
+2. Read `docs/DEVELOPMENT_BACKLOG.md` for the owner-approved work order, cross-project risks, and accepted security boundaries.
+3. Read `README.md` for participant, staff, configuration, and deployment behavior.
+4. Inspect `git status -sb` before editing. Preserve all user work and keep unrelated changes out of commits.
 
 The task is complete only when the requested behavior works, `npm test` and `npm run build` pass, relevant mobile UI is checked, and the handoff documents still describe reality.
 
