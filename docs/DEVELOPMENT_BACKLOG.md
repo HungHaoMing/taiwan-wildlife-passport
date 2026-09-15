@@ -55,6 +55,7 @@
 
 - **前端 Service Worker 更新策略**：目前 `public/sw.js` 使用固定 cache 名稱 `2026-tie-point-card-v1` 且對入口 HTML 採 cache-first。部署新版後，舊瀏覽器可能保留舊 HTML、引用已移除的 bundle，只剩未套樣式的「Skip to content」。應讓導覽請求優先取得新版、升級 cache 版本並清除舊 cache；不得以清除 `localStorage` 作為一般修復方式。
 - **Server 過期 session 導回登入**：工作人員 session 過期後直接開啟 `/admin/` 目前會看到 JSON `Session expired`，後台 HTML 頁面應導向 `/admin/login`；API 與受保護靜態資源仍應維持正確 401。
+- **卡面位置最終確認**：姓名、手寫／繪圖、鍵盤文字及七枚印章已使用共用百分比座標實作，但仍需專案擁有者以新作品內容做最後預覽確認；若需調整只改 `eventConfig` 並同步驗證畫面與輸出圖。
 - **真機與實體列印驗收**：iPhone Safari、Android Chrome、七張實體 QR、短暫斷網重試，以及 Epson L3550 + 彩之舞 HY-B862 的 4 × 6 橫式無邊界列印。
 
 #### P1：低成本可靠性與資安補強
@@ -105,6 +106,7 @@
 - 正式 GitHub Pages 由舊 Service Worker 升級到修正版時，不清除集章資料且能載入新 bundle。
 - 正式 API 的 5／6／7 枚新投稿、pending 更新、斷網後相同 key 重試。
 - 工作人員登入、搜尋、清單自動更新、列印失敗復原、重印及重複兌換阻擋。
+- 工作人員在後台確認並取消先前標示「Codex E2E 測試（請取消）」、兌換碼 `TPR6WR` 的測試投稿（若尚未處理）。
 - 活動結束後設定／確認 `PURGE_ALL_AFTER`，並同步清除含個資的備份。
 
 ## 發佈原則
