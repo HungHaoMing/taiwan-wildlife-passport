@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { eventConfig } from '../src/config/eventConfig.js';
+import { existsSync } from 'node:fs';
+import { eventConfig, workImagePaths } from '../src/config/eventConfig.js';
 import { initialState, sanitizeNickname, sanitizeMessage, normalizeState, saveState, loadState, validateStamp, addStamp, submissionNeedsUpdate, exportState, importState, STORAGE_KEY } from '../src/state.js';
 import { resolveInitialParticipantView } from '../src/accessPolicy.js';
 import { stationUrl } from '../src/stationUrl.js';
@@ -10,6 +11,12 @@ function memoryStorage() {
 }
 
 describe('participant data', () => {
+  it('uses Traditional Chinese for a new card while preserving a saved valid language', () => {
+    expect(initialState().language).toBe('zh-TW');
+    expect(normalizeState({ language: 'en' }).language).toBe('en');
+    expect(normalizeState({ language: 'ja' }).language).toBe('ja');
+  });
+
   it('accepts English, Traditional Chinese, and Japanese while stripping control characters and limiting nickname length', () => {
     expect(sanitizeNickname('  Alice台灣あいう  ')).toBe('Alice台灣あいう');
     expect(sanitizeNickname('<img onerror=alert(1)>')).toHaveLength(20);
@@ -61,7 +68,7 @@ describe('participant data', () => {
 
   it('normalizes tampered or old browser data safely', () => {
     const normalized = normalizeState({ nickname: 123, stamps: ['animal01', 'animal01', 'bad'], language: 'bad', participantId: '../../bad', redemptionCode: '<script>' });
-    expect(normalized).toMatchObject({ nickname: '123', stamps: ['animal01'], language: 'en', redemptionCode: '' });
+    expect(normalized).toMatchObject({ nickname: '123', stamps: ['animal01'], language: 'zh-TW', redemptionCode: '' });
     expect(normalized.participantId).toMatch(/^participant:[A-Za-z0-9-]+$/);
     expect(normalized.idempotencyKey).toMatch(/^submission:[A-Za-z0-9-]+$/);
   });
@@ -80,8 +87,18 @@ describe('central configuration', () => {
     for (const animal of eventConfig.animals) {
       expect(animal.token.length).toBeGreaterThanOrEqual(16);
       expect(animal.animalImage).toMatch(/^assets\//);
+      expect(animal.animalImages.length).toBeGreaterThanOrEqual(1);
+      expect(animal.animalImages[0]).toBe(animal.animalImage);
+      for (const image of animal.animalImages) expect(existsSync(new URL(`../public/${image}`, import.meta.url))).toBe(true);
       expect(animal.stampImage).toMatch(/^assets\//);
       for (const value of [animal.stampX, animal.stampY, animal.stampWidth, animal.stampHeight]) expect(value).toBeGreaterThan(0);
+    }
+  });
+
+  it('uses the supplied work images for detail and claim-result pages, separate from card stamps', () => {
+    for (const animal of eventConfig.animals) {
+      expect(workImagePaths(animal)).toEqual(animal.animalImages);
+      expect(workImagePaths(animal)).not.toContain(animal.stampImage);
     }
   });
 
@@ -89,8 +106,11 @@ describe('central configuration', () => {
     expect(eventConfig.cardDesigns[0]).toMatchObject({ image: 'assets/event/2026-tie/point-card-source.png', width: 1748, height: 1240 });
     expect(eventConfig.output).toMatchObject({ width: 3496, height: 2480 });
     expect(eventConfig.animals.map((animal) => animal.nameZh)).toEqual([
-      '作品 1', '作品 2', '作品 3', '作品 4', '作品 5', '作品 6', '作品 7',
+      '百香果殼碳環保貓砂', '剩食再生米餐具', '香菇太空包再生育苗盆', 'Formoya 福萌芽',
+      '磁吸式智慧電路教具', '茭白筍殼環保複合材料', '智慧物聯網保險箱',
     ]);
+    expect(eventConfig.animals[4].animalImages).toHaveLength(2);
+    expect(eventConfig.animals.every((animal) => animal.description.en && animal.description.ja && animal.description['zh-TW'])).toBe(true);
     expect(eventConfig.animals.every((animal) => animal.stampRotation === 14.9)).toBe(true);
     expect(eventConfig.animals.every((animal) => animal.stampImage.startsWith('assets/event/'))).toBe(true);
     expect(eventConfig.animals.every((animal) => animal.stampImage.endsWith('.png'))).toBe(true);
