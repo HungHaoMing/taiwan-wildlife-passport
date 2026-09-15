@@ -27,6 +27,7 @@ npm run build
 - `README.md`
 - `TEST_REPORT.md`
 - `docs/ASSET_PROVENANCE.md`
+- `docs/DEVELOPMENT_BACKLOG.md`
 - `docs/multi-participant-flow-spec.md`
 - `src/config/eventConfig.js`
 - `src/cardRenderer.js`
@@ -34,6 +35,14 @@ npm run build
 - `src/state.js`
 
 請先檢查 `git status` 與最新 commit，不要覆蓋既有修改。後續工作必須依照以下三個階段進行；每一階段完成、讓我確認後，才能開始下一階段。
+
+請完整閱讀 `docs/DEVELOPMENT_BACKLOG.md`。2026-09-15 起的最新優先順序覆蓋本文件較早的三階段敘述：
+
+1. 先依專案擁有者提供的資料補齊七件作品名稱、介紹、補充資訊與新的作品介紹照片；不得由印章圖猜測內容，確認前不要 push。
+2. 作品內容確認後，將新使用者預設語言由英文改成繁體中文，同時保留既有使用者自行選擇的語言。
+3. 最後才處理 Service Worker 舊快取、Server session 過期導回登入、低成本資安／維運改善及多人共用手機功能。
+
+不要因為看見後文的「第三階段」就先開始多人功能；最新 backlog 是唯一執行順序來源。
 
 目前狀態：第一階段素材替換已完成；第二階段的姓名、手寫／文字區與七枚印章百分比座標已實作並提供預覽，仍待專案擁有者最後確認。另已依新展場流程加入「5～7 枚完成後投稿總關 API 並顯示兌換碼」功能。作品名稱與三語介紹尚未提供。不要重做已完成項目，也不要在確認前開始第三階段。
 
