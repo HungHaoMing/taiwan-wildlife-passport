@@ -1,6 +1,6 @@
 import { Html5Qrcode } from 'html5-qrcode';
 import './styles.css';
-import { eventConfig, textFor, animalName } from './config/eventConfig.js';
+import { eventConfig, textFor, animalName, workImagePaths } from './config/eventConfig.js';
 import { initialState, loadState, saveState, sanitizeNickname, sanitizeMessage, validateStamp, addStamp, submissionNeedsUpdate } from './state.js';
 import { createDrawingPad } from './drawingPad.js';
 import { assetUrl, renderCompletedCard } from './cardRenderer.js';
@@ -170,8 +170,10 @@ function editNickname() {
 
 function renderAnimal(result = false, duplicate = false) {
   const animal = activeAnimal || eventConfig.animals[0];
-  shell(`${topbar()}<article class="panel">${result ? `<h1>${h(duplicate ? t('alreadyOwned') : t('stampAdded'))}</h1><div class="stamp-celebration" style="--stamp-duration:${eventConfig.stampAnimation.durationMs}ms"><img src="${h(assetUrl(animal.stampImage))}" data-file="${h(animal.stampImage)}" alt="${h(animal.altText)}"></div>` : `<img class="animal-detail-image" src="${h(assetUrl(animal.animalImage))}" data-file="${h(animal.animalImage)}" alt="${h(animal.altText)}">`}
-    <h2>${h(animalName(animal, state.language))}</h2><p><em>${h(animal.scientificName)}</em></p><h3>${h(t('description'))}</h3><p>${h(animal.description[state.language] || animal.description.en)}</p><h3>${h(t('funFact'))}</h3><p>${h(animal.funFact[state.language] || animal.funFact.en)}</p>
+  const images = workImagePaths(animal);
+  const imageMarkup = `<div class="work-image-gallery${images.length > 1 ? ' multiple' : ''}">${images.map((image, index) => `<img class="animal-detail-image" src="${h(assetUrl(image))}" data-file="${h(image)}" alt="${h(`${animal.altText}${images.length > 1 ? `（${index + 1}/${images.length}）` : ''}`)}">`).join('')}</div>`;
+  shell(`${topbar()}<article class="panel">${result ? `<h1>${h(duplicate ? t('alreadyOwned') : t('stampAdded'))}</h1>` : ''}${imageMarkup}
+    <h2>${h(animalName(animal, state.language))}</h2>${animal.scientificName ? `<p><em>${h(animal.scientificName)}</em></p>` : ''}<h3>${h(t('description'))}</h3><p>${h(animal.description[state.language] || animal.description.en)}</p>
     <button style="width:100%" data-view="card">${h(t('backToCard'))}</button></article>`);
   if (result && !duplicate && state.stamps.length === eventConfig.animals.length && sessionStorage.getItem('passport-completed-now')) {
     setTimeout(() => { if (view === 'stamp-result') { sessionStorage.removeItem('passport-completed-now'); go('complete'); } }, 1800);

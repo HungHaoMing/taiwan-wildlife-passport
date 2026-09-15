@@ -1,6 +1,6 @@
 # 素材來源與衍生紀錄
 
-更新日期：2026-09-14
+更新日期：2026-09-15
 
 ## 使用原則
 
@@ -27,6 +27,21 @@
 七枚印章原檔都已包含透明通道，無須使用 `scripts/remove_stamp_background.py`。舊版明信片與六枚動物印章仍保留於 `public/assets/event/`，未被覆蓋。
 
 首頁 Logo 直接使用 `logo-source.png`；Hero 暫時直接引用 `point-card-source.png`，沒有建立或修改另一份圖片。
+
+## 2026 TIE 七件作品介紹圖
+
+以下八張 PNG 由專案擁有者於 2026-09-15 提供，網站中的檔案是未裁切、未縮放、未重新編碼的原檔副本。檔名依作品順序整理；磁吸式智慧電路教具使用兩張介紹圖。既有七張透明印章原檔未變更。
+
+| 原始附件名稱 | 專案中的來源備份 | 尺寸 | SHA-256 |
+|---|---|---:|---|
+| `果殼貓砂.png` | `public/assets/event/2026-tie/works/work-01-passion-fruit-cat-litter.png` | 1894 × 1578 | `020ea21b…6b8f0844` |
+| `米餐具.png` | `public/assets/event/2026-tie/works/work-02-upcycled-rice-tableware.png` | 1894 × 1578 | `3cc7ead7…11266fee` |
+| `環保花盆.png` | `public/assets/event/2026-tie/works/work-03-mushroom-seedling-pot.png` | 1894 × 1578 | `1a4b53a6…cc7057f5` |
+| `生產履歷.png` | `public/assets/event/2026-tie/works/work-04-formoya.png` | 1894 × 1578 | `63d1fdc2…d8348c19` |
+| `磁吸教材.png` | `public/assets/event/2026-tie/works/work-05-magnetic-circuit-kit-01.png` | 1894 × 1578 | `13802b3b…afb34fc` |
+| `磁吸教材2.png` | `public/assets/event/2026-tie/works/work-05-magnetic-circuit-kit-02.png` | 1894 × 1578 | `d053830c…182e0bd9` |
+| `環保筍殼材料.png` | `public/assets/event/2026-tie/works/work-06-water-bamboo-composite.png` | 1894 × 1578 | `d6cd9213…3d0f463e` |
+| `保險箱.png` | `public/assets/event/2026-tie/works/work-07-iot-smart-safe.png` | 1894 × 1578 | `3f51aeab…4af83d19` |
 
 ## 使用者提供的來源檔
 

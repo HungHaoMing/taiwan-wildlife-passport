@@ -4,7 +4,7 @@
 
 > 跨電腦接手、待開發項目、資安風險及專案擁有者指定的開發順序，請先閱讀 [`docs/DEVELOPMENT_BACKLOG.md`](docs/DEVELOPMENT_BACKLOG.md)。
 
-> 新版集點卡與七枚 RGBA 印章均為活動提供的正式檔案；七個作品的正式名稱與介紹尚待提供，目前只顯示中性編號。專案沒有使用 AI 產圖或網路圖片，也不會依圖片猜測作品主題。
+> 新版集點卡、七枚 RGBA 印章、七件作品的正式三語內容與八張作品介紹圖均由活動方提供。專案沒有使用 AI 產圖或網路圖片。
 
 ## 功能
 
@@ -18,7 +18,7 @@
 - 七站 QR Code 由本機指令產生，不把管理入口或補章功能部署到公開網站。
 - 參加者可修改姓名、清除或重寫留言，以及二次確認重置整張卡片。
 - 相對資源路徑、離線快取與 GitHub Pages 子路徑部署。
-- English 預設，並提供完整日本語與繁體中文介面；所有翻譯仍可由設定檔修改。
+- 新使用者預設顯示繁體中文，並提供 English、日本語切換；既有使用者已保存的語言選擇不會被覆蓋。
 
 ## 專案結構
 
@@ -120,8 +120,8 @@ npm run dev
 ### 更換內容與翻譯
 
 - 作品名稱：`nameZh`、`nameEn`、`nameJa`
-- 正式補充欄位：`scientificName`（新版作品未必需要，可留空）
-- 作品介紹／補充資訊：`description`、`funFact` 的三語值
+- 作品介紹：`description` 的三語值
+- 作品介紹圖：`animalImages`；第一張同步保留於相容欄位 `animalImage`
 - 圖片替代文字：`altText`
 - 介面翻譯：在各語言的 `text` 中加入與 `text.en` 相同的 key；缺漏會回退英文。
 - token：修改各作品／站點 `token`，建議至少 16 個混合英數字元且每站不同；更換後重新下載／列印 QR Code，舊 QR Code 隨即失效。
@@ -135,7 +135,8 @@ npm run dev
 | `2026-tie/logo-source.png` | 網站 Logo（目前正式檔） | PNG | 800 × 300 | 是 | `assets.logo` |
 | `2026-tie/point-card-source.png` | 首頁主視覺（暫用集點卡） | PNG | 1748 × 1240 | 否 | `assets.hero` |
 | `2026-tie/point-card-source.png` | 電子集點卡底圖（目前正式檔） | PNG | 1748 × 1240 | 否 | `cardDesigns[].image` |
-| `2026-tie/stamp-source-01.png`～`07.png` | 七張作品介紹圖與印章 | PNG | 152–174 px | **是** | `animals[].animalImage`、`stampImage` |
+| `2026-tie/stamp-source-01.png`～`07.png` | 七枚集點印章 | PNG | 152–174 px | **是** | `animals[].stampImage` |
+| `2026-tie/works/work-*.png` | 七件作品的八張介紹圖 | PNG | 1894 × 1578 | 否 | `animals[].animalImages`、`animalImage` |
 | `stamp.mp3` | 蓋章短音效 | MP3、AAC | 1 秒內 | 不適用 | `sound.path` |
 
 正式印章若尺寸比例不同，請同時調整 `stampWidth`、`stampHeight`。音效預設 `sound.enabled: false`，放入檔案後再改為 `true`。
