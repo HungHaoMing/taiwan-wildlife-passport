@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { eventConfig } from '../src/config/eventConfig.js';
 import { initialState, sanitizeNickname, sanitizeMessage, normalizeState, saveState, loadState, validateStamp, addStamp, submissionNeedsUpdate, exportState, importState, STORAGE_KEY } from '../src/state.js';
+import { resolveInitialParticipantView } from '../src/accessPolicy.js';
+import { stationUrl } from '../src/stationUrl.js';
 
 function memoryStorage() {
   const values = new Map();
@@ -107,5 +109,39 @@ describe('central configuration', () => {
     expect(Object.keys(eventConfig.text['zh-TW']).sort()).toEqual(englishKeys);
     expect(eventConfig.text.ja.start).not.toBe(eventConfig.text.en.start);
     expect(eventConfig.text['zh-TW'].start).not.toBe(eventConfig.text.en.start);
+  });
+
+  it('does not expose participant-side printing or staff controls in public configuration', () => {
+    expect(eventConfig.staff).toBeUndefined();
+    for (const language of eventConfig.event.languages) {
+      expect(eventConfig.text[language]).not.toHaveProperty('printCard');
+      expect(eventConfig.text[language]).not.toHaveProperty('staffPin');
+      expect(eventConfig.text[language]).not.toHaveProperty('add');
+      expect(eventConfig.text[language]).not.toHaveProperty('remove');
+    }
+  });
+
+  it('uses the final-station server as the primary completion action in all three languages', () => {
+    expect(eventConfig.text.en.submitToServer).toBe('Send to the final-station server');
+    expect(eventConfig.text.ja.submitToServer).toBe('ゴールのサーバーへ送信');
+    expect(eventConfig.text['zh-TW'].submitToServer).toBe('送到總關 Server');
+  });
+
+  it.each(['?staff=1', '?view=qr'])('ignores removed public operational entry %s', (search) => {
+    expect(resolveInitialParticipantView({
+      search,
+      hasNickname: true,
+      hasPendingStamp: false,
+      hasInvalidStampRequest: false,
+    })).toBe('card');
+  });
+
+  it('builds station links for the offline QR generation command', () => {
+    const animal = eventConfig.animals[0];
+    const url = new URL(stationUrl('https://example.com/event/?old=1#top', animal));
+    expect(`${url.origin}${url.pathname}`).toBe('https://example.com/event/');
+    expect(url.searchParams.get('stamp')).toBe(animal.id);
+    expect(url.searchParams.get('token')).toBe(animal.token);
+    expect(url.hash).toBe('');
   });
 });

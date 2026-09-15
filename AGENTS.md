@@ -34,7 +34,7 @@ The task is complete only when the requested behavior works, `npm test` and `npm
 - Keep this a small static Vite site suitable for a GitHub Pages project subpath. Prefer browser storage and avoid a backend or paid service.
 - Design mobile-first for iPhone Safari and Android Chrome. Preserve touch target size, keyboard access, readable contrast, image alt text, and reduced-motion behavior.
 - Browser data is local-only. Changes must not imply login, cloud sync, or secure server authentication.
-- Staff PIN and QR tokens are convenience barriers in public client code, never security claims.
+- Do not ship participant-side staff controls or a public PIN. QR tokens remain public-client convenience barriers, never security claims.
 - Keep participant progress compatible when changing UI or assets; avoid changing animal IDs or storage shape without a migration.
 
 ## Verification
