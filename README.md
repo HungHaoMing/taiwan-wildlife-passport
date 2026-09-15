@@ -12,8 +12,8 @@
 - 參加者可按卡片上的「掃描 QR Code」直接開啟後鏡頭；iPhone Safari 與 Android Chrome 會要求相機權限。
 - 第一次由集章 QR Code 進站時，先設定暱稱，再自動補領剛才的章。
 - 七張透明印章依設定百分比疊在新版卡片七個白格中心，並順時鐘旋轉 14.9°。
-- 收集至少五枚即可進入完成流程；第七枚完成時會自動進入。手寫支援觸控、高 DPI、旋轉後保留、復原、清除與鍵盤文字。
-- 合成 3496 × 2480 高解析 PNG；預覽與輸出共用同一組百分比座標。
+- 收集至少五枚時，集點卡會顯示「前往手寫完成卡片」按鈕；第七枚完成時才會自動進入。手寫支援觸控、高 DPI、旋轉後保留、復原、清除與鍵盤文字。
+- 使用標準 3:2（4 × 6）卡面，合成 3600 × 2400 高解析 PNG；預覽與輸出共用同一組百分比座標。
 - 將 5～7 枚完成卡轉成 1800 × 1200 JPEG，以 `multipart/form-data` 投稿至總關並顯示兌換碼；網路重試沿用同一組冪等鍵。
 - 七站 QR Code 由本機指令產生，不把管理入口或補章功能部署到公開網站。
 - 參加者可修改姓名、清除或重寫留言，以及二次確認重置整張卡片。
@@ -133,8 +133,8 @@ npm run dev
 | 建議檔名 | 用途 | 建議格式 | 建議尺寸 | 透明背景 | 設定欄位 |
 |---|---|---|---:|---|---|
 | `2026-tie/logo-source.png` | 網站 Logo（目前正式檔） | PNG | 800 × 300 | 是 | `assets.logo` |
-| `2026-tie/point-card-source.png` | 首頁主視覺（暫用集點卡） | PNG | 1748 × 1240 | 否 | `assets.hero` |
-| `2026-tie/point-card-source.png` | 電子集點卡底圖（目前正式檔） | PNG | 1748 × 1240 | 否 | `cardDesigns[].image` |
+| `2026-tie/point-card-source-v2.png` | 活動方提供的新版集點卡原檔備份 | PNG | 3590 × 2409 | 否 | 素材追溯，不直接顯示 |
+| `2026-tie/point-card-4x6.png` | 首頁主視覺與電子集點卡正式底圖 | PNG | 3600 × 2400 | 否 | `assets.hero`、`cardDesigns[].image` |
 | `2026-tie/stamp-source-01.png`～`07.png` | 七枚集點印章 | PNG | 152–174 px | **是** | `animals[].stampImage` |
 | `2026-tie/works/work-*.png` | 七件作品的八張介紹圖 | PNG | 1894 × 1578 | 否 | `animals[].animalImages`、`animalImage` |
 | `stamp.mp3` | 蓋章短音效 | MP3、AAC | 1 秒內 | 不適用 | `sound.path` |

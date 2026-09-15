@@ -26,7 +26,17 @@
 
 七枚印章原檔都已包含透明通道，無須使用 `scripts/remove_stamp_background.py`。舊版明信片與六枚動物印章仍保留於 `public/assets/event/`，未被覆蓋。
 
-首頁 Logo 直接使用 `logo-source.png`；Hero 暫時直接引用 `point-card-source.png`，沒有建立或修改另一份圖片。
+首頁 Logo 直接使用 `logo-source.png`。舊版 Hero 曾直接引用 `point-card-source.png`；2026-09-15 起改用下方記錄的標準 4 × 6 正式底圖。
+
+### 4 × 6 新版集點卡
+
+專案擁有者於 2026-09-15 提供 `2026創博集點卡/新版集點卡.png`：
+
+| 原始附件名稱 | 專案中的來源備份 | 尺寸 | SHA-256 |
+|---|---|---:|---|
+| `新版集點卡.png` | `public/assets/event/2026-tie/point-card-source-v2.png` | 3590 × 2409 RGB | `174e104b…e4d98e57` |
+
+原檔完整保留。網站顯示與高解析輸出使用 `point-card-4x6.png`，由原檔作確定性處理：左右各裁 1 像素、上方裁 8 像素、下方裁 9 像素，得到正確 3:2 的 3588 × 2392 畫面，再以 Lanczos 縮放為 3600 × 2400（標準 4 × 6 比例）。沒有重繪、生成或加入其他內容。衍生檔 SHA-256 為 `addd498b…4af71e`。
 
 ## 2026 TIE 七件作品介紹圖
 
