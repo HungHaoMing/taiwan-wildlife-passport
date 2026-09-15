@@ -90,6 +90,10 @@ export function submissionNeedsUpdate(state) {
     && state.stamps.length > state.submittedStampCount;
 }
 
+export function canOpenCompletion(state) {
+  return state.stamps.length >= eventConfig.submission.minimumStampCount;
+}
+
 export function exportState(state) {
   return JSON.stringify({ type: 'taiwan-wildlife-passport-progress', exportedAt: new Date().toISOString(), data: normalizeState(state) }, null, 2);
 }

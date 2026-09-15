@@ -1,7 +1,7 @@
 import { Html5Qrcode } from 'html5-qrcode';
 import './styles.css';
 import { eventConfig, textFor, animalName, workImagePaths } from './config/eventConfig.js';
-import { initialState, loadState, saveState, sanitizeNickname, sanitizeMessage, validateStamp, addStamp, submissionNeedsUpdate } from './state.js';
+import { initialState, loadState, saveState, sanitizeNickname, sanitizeMessage, validateStamp, addStamp, canOpenCompletion, submissionNeedsUpdate } from './state.js';
 import { createDrawingPad } from './drawingPad.js';
 import { assetUrl, renderCompletedCard } from './cardRenderer.js';
 import { submissionErrorKey, submitStampCard } from './submission.js';
@@ -147,12 +147,11 @@ function submissionResultMarkup() {
 }
 
 function renderCard() {
-  const complete = state.stamps.length >= eventConfig.submission.minimumStampCount;
-  const needsUpdate = submissionNeedsUpdate(state);
-  shell(`${topbar()}${cardMarkup()}<section class="panel">
+  const complete = canOpenCompletion(state);
+  shell(`${topbar()}${cardMarkup()}<section class="panel progress-panel">
     <div class="progress"><span>${h(t('progress'))}</span><strong>${state.stamps.length} / ${eventConfig.animals.length}</strong></div>
     ${submissionResultMarkup()}
-    <div class="actions">${complete ? `<button data-view="complete">${h(needsUpdate ? t('submitAgain') : t('preview'))}</button>` : ''}<button class="secondary" id="edit-nickname">${h(t('editNickname'))}</button><button class="secondary" id="show-help">${h(t('instructions'))}</button></div>
+    <div class="actions">${complete ? `<button class="completion-button" data-view="complete">${h(t('continueToHandwriting'))}</button>` : ''}<button class="secondary" id="edit-nickname">${h(t('editNickname'))}</button><button class="secondary" id="show-help">${h(t('instructions'))}</button></div>
   </section><section class="panel"><h2>${h(t('animals'))}</h2><div class="animal-grid">${eventConfig.animals.map((animal) => `<button class="animal-tile ${state.stamps.includes(animal.id) ? 'owned' : ''}" data-animal="${animal.id}"><span>${state.stamps.includes(animal.id) ? '✓' : '○'}</span> ${h(animalName(animal, state.language))}</button>`).join('')}</div></section>
   <section class="panel"><div class="actions"><button data-view="scan">${h(t('scanQr'))}</button><button class="secondary" data-view="start">${h(t('home'))}</button><button class="danger" id="reset">${h(t('reset'))}</button></div><p class="privacy">${h(t('privacy'))}</p></section>`);
   document.querySelectorAll('[data-animal]').forEach((button) => button.addEventListener('click', () => go('animal', { animal: eventConfig.animals.find((a) => a.id === button.dataset.animal) })));
@@ -235,7 +234,7 @@ async function stopQrScanner() {
 }
 
 function renderComplete() {
-  if (state.stamps.length < eventConfig.submission.minimumStampCount) {
+  if (!canOpenCompletion(state)) {
     shell(`${topbar()}<section class="panel"><p class="error-box">${h(t('notComplete'))}</p><button data-view="card">${h(t('backToCard'))}</button></section>`); return;
   }
   shell(`${topbar(t('completeTitle'))}<section class="panel">${cardMarkup()}<p>${h(t('completeIntro'))}</p><label>${h(t('handwriting'))}</label><canvas id="drawing" class="drawing-pad" aria-label="${h(t('handwriting'))}"></canvas>

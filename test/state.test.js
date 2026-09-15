@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { existsSync } from 'node:fs';
 import { eventConfig, workImagePaths } from '../src/config/eventConfig.js';
-import { initialState, sanitizeNickname, sanitizeMessage, normalizeState, saveState, loadState, validateStamp, addStamp, submissionNeedsUpdate, exportState, importState, STORAGE_KEY } from '../src/state.js';
+import { initialState, sanitizeNickname, sanitizeMessage, normalizeState, saveState, loadState, validateStamp, addStamp, canOpenCompletion, submissionNeedsUpdate, exportState, importState, STORAGE_KEY } from '../src/state.js';
 import { resolveInitialParticipantView } from '../src/accessPolicy.js';
 import { stationUrl } from '../src/stationUrl.js';
 
@@ -66,6 +66,19 @@ describe('participant data', () => {
     expect(submissionNeedsUpdate({ ...state, submittedStampCount: 7 })).toBe(false);
   });
 
+  it('opens handwriting from five stamps while reserving automatic completion for all seven', () => {
+    const ids = eventConfig.animals.map((animal) => animal.id);
+    expect(canOpenCompletion({ stamps: ids.slice(0, 4) })).toBe(false);
+    expect(canOpenCompletion({ stamps: ids.slice(0, 5) })).toBe(true);
+    expect(canOpenCompletion({ stamps: ids.slice(0, 6) })).toBe(true);
+    expect(canOpenCompletion({ stamps: ids })).toBe(true);
+
+    const five = addStamp({ ...initialState(), stamps: ids.slice(0, 4) }, ids[4]);
+    const seven = addStamp({ ...five.state, stamps: ids.slice(0, 6) }, ids[6]);
+    expect(five.completedNow).toBe(false);
+    expect(seven.completedNow).toBe(true);
+  });
+
   it('normalizes tampered or old browser data safely', () => {
     const normalized = normalizeState({ nickname: 123, stamps: ['animal01', 'animal01', 'bad'], language: 'bad', participantId: '../../bad', redemptionCode: '<script>' });
     expect(normalized).toMatchObject({ nickname: '123', stamps: ['animal01'], language: 'zh-TW', redemptionCode: '' });
@@ -103,8 +116,8 @@ describe('central configuration', () => {
   });
 
   it('maps the supplied 2026 TIE card and centers seven rotated stamps on its white spaces', () => {
-    expect(eventConfig.cardDesigns[0]).toMatchObject({ image: 'assets/event/2026-tie/point-card-source.png', width: 1748, height: 1240 });
-    expect(eventConfig.output).toMatchObject({ width: 3496, height: 2480 });
+    expect(eventConfig.cardDesigns[0]).toMatchObject({ image: 'assets/event/2026-tie/point-card-4x6.png', width: 3600, height: 2400 });
+    expect(eventConfig.output).toMatchObject({ width: 3600, height: 2400 });
     expect(eventConfig.animals.map((animal) => animal.nameZh)).toEqual([
       '百香果殼碳環保貓砂', '剩食再生米餐具', '香菇太空包再生育苗盆', 'Formoya 福萌芽',
       '磁吸式智慧電路教具', '茭白筍殼環保複合材料', '智慧物聯網保險箱',
