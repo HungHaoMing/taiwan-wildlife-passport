@@ -1,11 +1,11 @@
-import QRCode from 'qrcode';
 import { Html5Qrcode } from 'html5-qrcode';
 import './styles.css';
 import { eventConfig, textFor, animalName } from './config/eventConfig.js';
-import { initialState, loadState, saveState, sanitizeNickname, sanitizeMessage, validateStamp, addStamp, submissionNeedsUpdate, exportState, importState } from './state.js';
+import { initialState, loadState, saveState, sanitizeNickname, sanitizeMessage, validateStamp, addStamp, submissionNeedsUpdate } from './state.js';
 import { createDrawingPad } from './drawingPad.js';
 import { assetUrl, renderCompletedCard } from './cardRenderer.js';
 import { submissionErrorKey, submitStampCard } from './submission.js';
+import { resolveInitialParticipantView } from './accessPolicy.js';
 
 const app = document.querySelector('#app');
 const toastElement = document.querySelector('#toast');
@@ -13,8 +13,6 @@ let state = loadState();
 let view = 'start';
 let activeAnimal = null;
 let drawingPad = null;
-let staffUnlocked = false;
-let staffDestination = 'staff';
 let qrScanner = null;
 let scanLocked = false;
 let storageWorks = testStorage();
@@ -26,11 +24,14 @@ const requestedToken = params.get('token');
 const hasStampParams = requestedAnimalId || requestedToken;
 let pendingAnimal = hasStampParams ? validateStamp(requestedAnimalId, requestedToken) : null;
 let invalidStampRequest = Boolean(hasStampParams && !pendingAnimal);
-if (params.get('view') === 'qr') { staffDestination = 'qr'; view = 'staff-login'; }
-else if (params.get(eventConfig.staff.queryKey) === '1') view = 'staff-login';
-else if (state.nickname && pendingAnimal) claimPendingStamp();
-else if (state.nickname && invalidStampRequest) view = 'invalid';
-else if (state.nickname) view = 'card';
+const initialView = resolveInitialParticipantView({
+  search: location.search,
+  hasNickname: Boolean(state.nickname),
+  hasPendingStamp: Boolean(pendingAnimal),
+  hasInvalidStampRequest: invalidStampRequest,
+});
+if (initialView === 'claim-pending') claimPendingStamp();
+else view = initialView;
 
 function testStorage() {
   try { localStorage.setItem('__passport_test__', '1'); localStorage.removeItem('__passport_test__'); return true; } catch { return false; }
@@ -153,7 +154,7 @@ function renderCard() {
     ${submissionResultMarkup()}
     <div class="actions">${complete ? `<button data-view="complete">${h(needsUpdate ? t('submitAgain') : t('preview'))}</button>` : ''}<button class="secondary" id="edit-nickname">${h(t('editNickname'))}</button><button class="secondary" id="show-help">${h(t('instructions'))}</button></div>
   </section><section class="panel"><h2>${h(t('animals'))}</h2><div class="animal-grid">${eventConfig.animals.map((animal) => `<button class="animal-tile ${state.stamps.includes(animal.id) ? 'owned' : ''}" data-animal="${animal.id}"><span>${state.stamps.includes(animal.id) ? '✓' : '○'}</span> ${h(animalName(animal, state.language))}</button>`).join('')}</div></section>
-  <section class="panel"><div class="actions"><button data-view="scan">${h(t('scanQr'))}</button><button class="secondary" data-view="start">${h(t('home'))}</button>${eventConfig.staff.showParticipantEntry ? `<button class="secondary" data-view="staff-login">${h(t('staff'))}</button>` : ''}<button class="danger" id="reset">${h(t('reset'))}</button></div><p class="privacy">${h(t('privacy'))}</p></section>`);
+  <section class="panel"><div class="actions"><button data-view="scan">${h(t('scanQr'))}</button><button class="secondary" data-view="start">${h(t('home'))}</button><button class="danger" id="reset">${h(t('reset'))}</button></div><p class="privacy">${h(t('privacy'))}</p></section>`);
   document.querySelectorAll('[data-animal]').forEach((button) => button.addEventListener('click', () => go('animal', { animal: eventConfig.animals.find((a) => a.id === button.dataset.animal) })));
   document.querySelector('#edit-nickname').addEventListener('click', editNickname);
   document.querySelector('#show-help').addEventListener('click', () => modal(`<h2>${h(t('instructions'))}</h2><p>${h(t('useInstructions'))}</p><p>${h(t('privacy'))}</p>`));
@@ -242,7 +243,7 @@ function renderComplete() {
     <section class="panel"><h2>${h(t('preview'))}</h2>
       ${submissionResultMarkup()}
       <p id="submission-feedback" class="submission-feedback hint" aria-live="polite"></p>
-      <div class="actions"><button id="submit-card" ${submissionPending ? 'disabled' : ''}>${h(submissionPending ? t('submitting') : state.redemptionCode ? t('submitAgain') : t('submitForPrint'))}</button><button class="secondary" id="print-card">${h(t('printCard'))}</button><button class="secondary" id="download">${h(t('download'))}</button>${navigator.share ? `<button class="secondary" id="share">${h(t('share'))}</button>` : ''}<button class="secondary" id="open-image">${h(t('openImage'))}</button></div><p class="hint">${h(t('submitHint'))}</p><p class="hint print-hint">${h(t('printCardHint'))}</p></section>`);
+      <div class="actions"><button id="submit-card" ${submissionPending ? 'disabled' : ''}>${h(submissionPending ? t('submitting') : state.redemptionCode ? t('submitAgain') : t('submitToServer'))}</button><button class="secondary" id="download">${h(t('download'))}</button>${navigator.share ? `<button class="secondary" id="share">${h(t('share'))}</button>` : ''}<button class="secondary" id="open-image">${h(t('openImage'))}</button></div><p class="hint">${h(t('submitHint'))}</p></section>`);
   drawingPad = createDrawingPad(document.querySelector('#drawing'), state.handwriting);
   document.querySelector('#undo').addEventListener('click', () => drawingPad.undo());
   document.querySelector('#clear').addEventListener('click', () => { if (confirm(t('confirmClear'))) drawingPad.clear(); });
@@ -252,7 +253,6 @@ function renderComplete() {
     state.handwriting = drawingPad.dataUrl(); state.textMessage = sanitizeMessage(document.querySelector('#message').value); persist(); toast(t('saved')); renderComplete();
   });
   document.querySelector('#submit-card').addEventListener('click', submitCompleted);
-  document.querySelector('#print-card').addEventListener('click', printCompleted);
   document.querySelector('#download').addEventListener('click', downloadCompleted);
   document.querySelector('#open-image').addEventListener('click', openCompletedImage);
   document.querySelector('#share')?.addEventListener('click', shareCompleted);
@@ -262,7 +262,7 @@ async function completedBlob() {
   const canvas = await renderCompletedCard({ ...state, textMessage: sanitizeMessage(document.querySelector('#message')?.value ?? state.textMessage) });
   return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve({ blob, canvas }) : reject(new Error('png-failed')), 'image/png'));
 }
-function createPrintCanvas(source, targetWidth = 3600, targetHeight = 2400) {
+function createSubmissionCanvas(source, targetWidth, targetHeight) {
   const canvas = document.createElement('canvas');
   canvas.width = targetWidth;
   canvas.height = targetHeight;
@@ -281,7 +281,7 @@ function canvasBlob(canvas, type, quality) {
 }
 
 async function submissionBlob(source) {
-  const canvas = createPrintCanvas(source, eventConfig.submission.imageWidth, eventConfig.submission.imageHeight);
+  const canvas = createSubmissionCanvas(source, eventConfig.submission.imageWidth, eventConfig.submission.imageHeight);
   const blob = await canvasBlob(canvas, 'image/jpeg', eventConfig.submission.jpegQuality);
   if (blob.size > eventConfig.submission.maxImageBytes) throw new Error('image-too-large');
   return blob;
@@ -326,37 +326,7 @@ async function submitCompleted() {
   } finally {
     submissionPending = false;
     const currentButton = document.querySelector('#submit-card');
-    if (currentButton) { currentButton.disabled = false; currentButton.textContent = state.redemptionCode ? t('submitAgain') : t('submitForPrint'); }
-  }
-}
-async function printCompleted() {
-  try {
-    const { canvas } = await completedBlob();
-    document.querySelector('#print-area')?.remove();
-    const printArea = document.createElement('div');
-    printArea.id = 'print-area';
-    const image = document.createElement('img');
-    image.alt = t('preview');
-    image.src = createPrintCanvas(canvas).toDataURL('image/png');
-    printArea.append(image);
-    document.body.append(printArea);
-    document.body.classList.add('printing-card');
-    const pageStyle = document.createElement('style');
-    pageStyle.id = 'print-page-style';
-    pageStyle.textContent = '@page { size: 6in 4in; margin: 0; }';
-    document.head.append(pageStyle);
-    await image.decode();
-    window.addEventListener('afterprint', () => {
-      printArea.remove();
-      pageStyle.remove();
-      document.body.classList.remove('printing-card');
-    }, { once: true });
-    window.print();
-  } catch {
-    document.querySelector('#print-area')?.remove();
-    document.querySelector('#print-page-style')?.remove();
-    document.body.classList.remove('printing-card');
-    toast(t('exportError'), 5000);
+    if (currentButton) { currentButton.disabled = false; currentButton.textContent = state.redemptionCode ? t('submitAgain') : t('submitToServer'); }
   }
 }
 async function downloadCompleted() {
@@ -371,48 +341,10 @@ async function shareCompleted() {
   try { const { blob } = await completedBlob(); const file = new File([blob], `${eventConfig.output.filePrefix}.png`, { type: 'image/png' }); if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: eventConfig.event.name }); else await openCompletedImage(); } catch (error) { if (error.name !== 'AbortError') toast(t('exportError'), 5000); }
 }
 
-function renderStaffLogin() {
-  if (staffUnlocked) return renderStaff();
-  shell(`${topbar(t('staff'))}<section class="panel"><p class="privacy">${h(t('staffSecurity'))}</p><form id="pin-form"><label for="pin">${h(t('staffPin'))}</label><input id="pin" type="password" inputmode="numeric" autocomplete="off"><button style="width:100%;margin-top:1rem">${h(t('enter'))}</button></form><div class="actions"><button class="secondary" data-view="card">${h(t('backToCard'))}</button></div></section>`);
-  document.querySelector('#pin-form').addEventListener('submit', (event) => { event.preventDefault(); if (document.querySelector('#pin').value === eventConfig.staff.pin) { staffUnlocked = true; const destination = staffDestination; staffDestination = 'staff'; go(destination); } else toast(t('wrongPin')); });
-}
-
-function renderStaff() {
-  shell(`${topbar(t('staff'))}<section class="panel"><p><strong>${h(state.nickname || '—')}</strong> · ${state.stamps.length} / ${eventConfig.animals.length}</p><div class="staff-list">${eventConfig.animals.map((animal) => { const owned = state.stamps.includes(animal.id); return `<div class="staff-row"><span>${owned ? '✓' : '○'} ${h(animalName(animal, state.language))}</span><button class="${owned ? 'danger' : 'secondary'}" data-toggle-stamp="${animal.id}">${h(owned ? t('remove') : t('add'))}</button></div>`; }).join('')}</div><div class="actions"><button class="secondary" id="staff-nickname">${h(t('editNickname'))}</button><button class="secondary" id="clear-messages">${h(t('clearMessages'))}</button><button class="secondary" id="export-data">${h(t('exportData'))}</button><button class="secondary" id="import-data">${h(t('importData'))}</button><input id="import-file" type="file" accept="application/json" hidden><button class="secondary" data-view="qr">${h(t('qrAdmin'))}</button><button class="danger" id="staff-reset">${h(t('reset'))}</button><button data-view="card">${h(t('exitStaff'))}</button></div></section>`);
-  document.querySelectorAll('[data-toggle-stamp]').forEach((button) => button.addEventListener('click', () => {
-    const id = button.dataset.toggleStamp; state.stamps = state.stamps.includes(id) ? state.stamps.filter((stamp) => stamp !== id) : [...state.stamps, id];
-    if (state.stamps.length === eventConfig.animals.length && !state.completedAt) state.completedAt = new Date().toISOString(); persist(); renderStaff();
-  }));
-  document.querySelector('#staff-nickname').addEventListener('click', editNickname);
-  document.querySelector('#clear-messages').addEventListener('click', () => { if (confirm(t('confirmClear'))) { state.handwriting = ''; state.textMessage = ''; persist(); renderStaff(); } });
-  document.querySelector('#export-data').addEventListener('click', exportProgress);
-  document.querySelector('#import-data').addEventListener('click', () => document.querySelector('#import-file').click());
-  document.querySelector('#import-file').addEventListener('change', importProgressFile);
-  document.querySelector('#staff-reset').addEventListener('click', resetAll);
-}
-
-function exportProgress() {
-  const blob = new Blob([exportState(state)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = '2026-tie-point-card-progress.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-async function importProgressFile(event) {
-  try { state = importState(await event.target.files[0].text()); persist(); toast(t('saved')); render(); } catch { toast(t('importError'), 5000); }
-}
 function resetAll() {
   if (!confirm(t('confirmReset1')) || !confirm(t('confirmReset2'))) return;
-  state = initialState(); persist(); staffUnlocked = false; go('start');
+  state = initialState(); persist(); go('start');
 }
-
-async function renderQr() {
-  if (!staffUnlocked) { staffDestination = 'qr'; view = 'staff-login'; renderStaffLogin(); return; }
-  shell(`${topbar(t('qrAdmin'))}<section class="panel no-print"><p>${h(t('qrIntro'))}</p><div class="actions"><button id="print">${h(t('print'))}</button><button class="secondary" data-view="card">${h(t('backToCard'))}</button></div></section><section class="qr-grid">${eventConfig.animals.map((animal) => {
-    const url = stationUrl(animal); return `<article class="qr-card"><h2>${h(animalName(animal, state.language))}</h2><canvas id="qr-${animal.id}" aria-label="${h(t('qrAria'))} ${h(animalName(animal, state.language))}"></canvas><p class="url">${h(url)}</p><div class="actions no-print"><button class="secondary" data-copy="${h(url)}">${h(t('copy'))}</button><button data-qr-download="${animal.id}">${h(t('qrDownload'))}</button></div></article>`;
-  }).join('')}</section>`, true);
-  await Promise.all(eventConfig.animals.map((animal) => QRCode.toCanvas(document.querySelector(`#qr-${animal.id}`), stationUrl(animal), { width: 520, margin: 2, errorCorrectionLevel: 'M', color: { dark: '#102e27', light: '#ffffff' } })));
-  document.querySelector('#print').addEventListener('click', () => window.print());
-  document.querySelectorAll('[data-copy]').forEach((button) => button.addEventListener('click', async () => { try { await navigator.clipboard.writeText(button.dataset.copy); toast(t('copied')); } catch { modal(`<p class="url">${h(button.dataset.copy)}</p>`); } }));
-  document.querySelectorAll('[data-qr-download]').forEach((button) => button.addEventListener('click', () => { const canvas = document.querySelector(`#qr-${button.dataset.qrDownload}`); const link = document.createElement('a'); link.href = canvas.toDataURL('image/png'); link.download = `qr-${button.dataset.qrDownload}.png`; link.click(); }));
-}
-function stationUrl(animal) { const url = new URL(location.pathname, location.origin); url.searchParams.set('stamp', animal.id); url.searchParams.set('token', animal.token); return url.href; }
 
 function modal(content, afterOpen) {
   closeModal(); const wrapper = document.createElement('div'); wrapper.className = 'modal'; wrapper.id = 'modal'; wrapper.setAttribute('role', 'dialog'); wrapper.setAttribute('aria-modal', 'true'); wrapper.innerHTML = `<div class="modal-card">${content}<button class="secondary" id="modal-close" style="width:100%;margin-top:1rem">${h(t('close'))}</button></div>`; document.body.append(wrapper);
@@ -429,9 +361,6 @@ function render() {
   else if (view === 'invalid') renderInvalidStamp();
   else if (view === 'scan') renderScanner();
   else if (view === 'complete') renderComplete();
-  else if (view === 'staff-login') renderStaffLogin();
-  else if (view === 'staff') renderStaff();
-  else if (view === 'qr') renderQr().catch(() => toast(t('exportError'), 5000));
 }
 
 window.addEventListener('popstate', () => { if (state.nickname) go('card'); else go('start'); });
