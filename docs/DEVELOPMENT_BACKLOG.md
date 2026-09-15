@@ -59,6 +59,7 @@
 
 #### P1：低成本可靠性與資安補強
 
+- **GitHub Actions runtime 升級**：2026-09-15 Pages workflow 成功，但 GitHub 警告目前使用的部分官方 actions 仍以已淘汰的 Node.js 20 runtime 為目標並由 runner 強制改用 Node.js 24。先確認官方新 major 版本與相容性，再更新 checkout、setup-node、Pages artifact／deploy actions；現況不阻擋部署。
 - **Server 限流器記憶體上限**：目前滑動視窗 limiter 會為每個來源 IP 永久保留 dictionary key。大量不同來源可能造成長期記憶體成長；加入過期 key 清理或總 key 上限。
 - **密碼產生命令**：文件目前示範把工作人員密碼放在命令列參數，可能留在 shell history 或短暫出現在 process list。改用 `python -m app.password` 的互動式輸入，並考慮移除 argv 密碼模式。
 - **孤立圖片清理**：資料庫 transaction 已盡量配合檔案刪除，但刪檔失敗仍可能留下不再被 DB 引用的圖片。加入只刪除未被引用且超過安全等待時間的維護／稽核功能。
