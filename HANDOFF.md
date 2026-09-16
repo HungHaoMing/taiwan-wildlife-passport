@@ -1,6 +1,6 @@
 # 專案交接
 
-更新日期：2026-09-15（Asia/Taipei）
+更新日期：2026-09-16（Asia/Taipei）
 
 > 完整開發順序、跨專案待辦與資安風險，以 `docs/DEVELOPMENT_BACKLOG.md` 為準。專案擁有者指定先補齊七件作品名稱／內容與新介紹照片，再將預設語言改為繁體中文，最後才處理技術待修與多人功能。
 
@@ -59,8 +59,8 @@
 
 ## 已記錄的展前 P0 待修
 
-- Service Worker 目前以固定 cache 名稱及 cache-first 方式保存入口 HTML；部署新版後，既有瀏覽器可能仍讀到舊 HTML，造成只顯示「Skip to content」或引用已移除的舊 bundle。需改成可更新的 cache 版本與適合導覽請求的更新策略；修正前不要要求已有集章進度的參加者清除網站資料。
-- 總關後台 session 過期後直接開啟 `/admin/` 會顯示 `{"detail":"Session expired"}`，尚未自動導回 `/admin/login`。需讓後台 HTML 頁面在未登入或 session 過期時導向登入頁，同時保留 API／靜態資源適當的 401 行為。
+- Service Worker 已於 2026-09-16 改為 `v2` cache：導覽請求優先取得新版，離線時才回退至快取入口，並在啟用後清除舊 cache。尚需以曾開啟過舊版的真實手機驗證升級過程與集章資料保留。
+- 總關後台 session 過期導頁已於 Server `14b0278` 修正：後台 HTML 頁會導回 `/admin/login`，圖片、程式檔與 API 仍維持 401。尚需在 NAS 部署並實際驗證過期流程。
 
 其餘低成本資安、維運風險與第三階段待決規格已集中整理於 `docs/DEVELOPMENT_BACKLOG.md`，接手者不得只依對話紀錄判斷現況。
 

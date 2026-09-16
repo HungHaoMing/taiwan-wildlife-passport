@@ -1,6 +1,6 @@
 # 素材來源與衍生紀錄
 
-更新日期：2026-09-15
+更新日期：2026-09-16
 
 ## 使用原則
 
@@ -40,12 +40,12 @@
 
 ## 2026 TIE 七件作品介紹圖
 
-以下八張 PNG 由專案擁有者於 2026-09-15 提供，網站中的檔案是未裁切、未縮放、未重新編碼的原檔副本。檔名依作品順序整理；磁吸式智慧電路教具使用兩張介紹圖。既有七張透明印章原檔未變更。
+以下八張 PNG 由專案擁有者於 2026-09-15 提供，米餐具圖於 2026-09-16 更正；網站中的檔案是未裁切、未縮放、未重新編碼的正式檔案副本。檔名依作品順序整理；磁吸式智慧電路教具使用兩張介紹圖。既有七張透明印章原檔未變更。
 
 | 原始附件名稱 | 專案中的來源備份 | 尺寸 | SHA-256 |
 |---|---|---:|---|
 | `果殼貓砂.png` | `public/assets/event/2026-tie/works/work-01-passion-fruit-cat-litter.png` | 1894 × 1578 | `020ea21b…6b8f0844` |
-| `米餐具.png` | `public/assets/event/2026-tie/works/work-02-upcycled-rice-tableware.png` | 1894 × 1578 | `3cc7ead7…11266fee` |
+| `米餐具.png`（更正版） | `public/assets/event/2026-tie/works/work-02-upcycled-rice-tableware.png` | 1149 × 960 | `629d1753…8d4c44e` |
 | `環保花盆.png` | `public/assets/event/2026-tie/works/work-03-mushroom-seedling-pot.png` | 1894 × 1578 | `1a4b53a6…cc7057f5` |
 | `生產履歷.png` | `public/assets/event/2026-tie/works/work-04-formoya.png` | 1894 × 1578 | `63d1fdc2…d8348c19` |
 | `磁吸教材.png` | `public/assets/event/2026-tie/works/work-05-magnetic-circuit-kit-01.png` | 1894 × 1578 | `13802b3b…afb34fc` |
