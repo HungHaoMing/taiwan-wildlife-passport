@@ -136,7 +136,7 @@ npm run dev
 | `2026-tie/point-card-source-v2.png` | 活動方提供的新版集點卡原檔備份 | PNG | 3590 × 2409 | 否 | 素材追溯，不直接顯示 |
 | `2026-tie/point-card-4x6.png` | 首頁主視覺與電子集點卡正式底圖 | PNG | 3600 × 2400 | 否 | `assets.hero`、`cardDesigns[].image` |
 | `2026-tie/stamp-source-01.png`～`07.png` | 七枚集點印章 | PNG | 152–174 px | **是** | `animals[].stampImage` |
-| `2026-tie/works/work-*.png` | 七件作品的八張介紹圖 | PNG | 1894 × 1578 | 否 | `animals[].animalImages`、`animalImage` |
+| `2026-tie/works/work-*.png` | 七件作品的八張介紹圖 | PNG | 1149 × 960～1894 × 1578 | 否 | `animals[].animalImages`、`animalImage` |
 | `stamp.mp3` | 蓋章短音效 | MP3、AAC | 1 秒內 | 不適用 | `sound.path` |
 
 正式印章若尺寸比例不同，請同時調整 `stampWidth`、`stampHeight`。音效預設 `sound.enabled: false`，放入檔案後再改為 `true`。
