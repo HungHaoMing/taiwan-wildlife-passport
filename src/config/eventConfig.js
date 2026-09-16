@@ -78,13 +78,13 @@ const works = [
 
 const stampSources = Array.from({ length: 7 }, (_, index) => `stamp-source-0${index + 1}.png`);
 const stampPlacements = [
-  { stampX: 68.03, stampY: 27.44 },
-  { stampX: 77.23, stampY: 48.34 },
-  { stampX: 61.67, stampY: 59.57 },
-  { stampX: 86.42, stampY: 69.24 },
-  { stampX: 58.55, stampY: 75.68 },
-  { stampX: 70.90, stampY: 80.50 },
-  { stampX: 55.37, stampY: 91.69 },
+  { stampX: 67.03, stampY: 27.23 },
+  { stampX: 75.73, stampY: 48.28 },
+  { stampX: 61.02, stampY: 59.59 },
+  { stampX: 84.43, stampY: 69.34 },
+  { stampX: 58.06, stampY: 75.81 },
+  { stampX: 69.75, stampY: 80.68 },
+  { stampX: 55.03, stampY: 91.88 },
 ];
 const stationTokens = [
   '7b5e91d4c8a36f02e17d94ab', 'c2098e5a71f34bd6a4e98c13',
